@@ -1,0 +1,12 @@
+[
+  {
+    "table": "daimler",
+    "columns": [
+      { "name": "id", "type": "SERIAL", "primary_key": true },
+      { "name": "part_name", "type": "TEXT" },
+      { "name": "part_number", "type": "TEXT", "unique": true },
+      { "name": "category", "type": "TEXT" },
+      { "name": "price", "type": "DOUBLE PRECISION" }
+    ]
+  }
+]
