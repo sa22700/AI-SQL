@@ -36,7 +36,15 @@ def sql_driver():
 		output = output['choices'][0]['text']
 		print(f'{output}\n')
 
-		cursor.execute(output)
+		sql_lines = output.splitlines()
+		sql_only = "\n".join([
+			line[line.upper().find(k):]
+			for line in sql_lines
+			for k in ("SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP")
+			if k in line.upper()
+		])
+
+		cursor.execute(sql_only)
 		rows = cursor.fetchall()
 		for row in rows:
 			print(row)
