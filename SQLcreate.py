@@ -10,7 +10,7 @@ def database():
     data = None
     try:
         connect = psycopg2.connect(
-            host='192.168.68.56',
+            host='192.168.68.51',
             user='admin',
             password='admin123',
             port='5432',

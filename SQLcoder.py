@@ -10,7 +10,7 @@ def sql_driver():
 	connect = None
 	try:
 		connect = psycopg2.connect(
-			host='192.168.68.56',
+			host='192.168.68.51',
 			user='admin',
 			password='admin123',
 			port='5432',
@@ -22,7 +22,7 @@ def sql_driver():
 		sys.stderr = open(os.devnull, 'w')
 		llm = Llama(model_path=os.path.join(os.path.dirname(__file__), './sqlcoder-7b-2.Q5_K_M.gguf'), use_mmap=False)
 
-		with open(os.path.join(os.path.dirname(__file__), './Schema.json', 'r')) as f:
+		with open(os.path.join(os.path.dirname(__file__), 'Schema.json')) as f:
 			schema = json.load(f)
 
 		question = input('Type your SQL query: ')
