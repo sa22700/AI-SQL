@@ -1,10 +1,11 @@
 import psycopg2
 from argon2 import PasswordHasher
 from DebugLog import log_error
+from Connection import connect
 
 def add_new_user():
     cursor = None
-    connect = None
+    conn = None
     print('Login into main account!')
     while True:
         login = input('Username: ')
@@ -12,15 +13,9 @@ def add_new_user():
 
         if login == 'admin' and main_password == 'admin123':
             try:
-                connect = psycopg2.connect(
-                    host='192.168.68.51',
-                    user='admin',
-                    password='admin123',
-                    port='5432',
-                    database='postgres'
-                )
-                connect.autocommit = True
-                cursor = connect.cursor()
+                conn = connect()
+                conn.autocommit = True
+                cursor = conn.cursor()
                 ph = PasswordHasher()
                 add_user = input('Add new user username: ')
                 add_password = input('Add new password: ')
@@ -53,6 +48,6 @@ def add_new_user():
 
             finally:
                 cursor.close()
-                connect.close()
+                conn.close()
         else:
             print('Faulty username or password')

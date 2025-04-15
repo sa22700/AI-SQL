@@ -1,9 +1,10 @@
 import psycopg2
 from SchemaBuilder import schema_tables, column_builder
 from DebugLog import log_error
+from Connection import connect
 
 def database():
-    connect = None
+    conn = None
     cursor = None
     table_name = None
     add_more = None
@@ -14,15 +15,9 @@ def database():
 
         if login == 'admin' and main_password == 'admin123':
             try:
-                connect = psycopg2.connect(
-                    host='192.168.68.51',
-                    user='admin',
-                    password='admin123',
-                    port='5432',
-                    database='postgres'
-                )
-                connect.autocommit = True
-                cursor = connect.cursor()
+                conn = connect()
+                conn.autocommit = True
+                cursor = conn.cursor()
 
                 create_table = input('Create table? (y/n): ').lower()
                 if create_table == 'n':
@@ -99,4 +94,4 @@ def database():
 
             finally:
                 cursor.close()
-                connect.close()
+                conn.close()

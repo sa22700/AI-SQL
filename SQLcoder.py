@@ -4,20 +4,15 @@ import sys
 import psycopg2
 import json
 from DebugLog import log_error
+from Connection import connect
 
 def sql_driver():
+	conn = None
 	cursor = None
-	connect = None
 	try:
-		connect = psycopg2.connect(
-			host='192.168.68.51',
-			user='admin',
-			password='admin123',
-			port='5432',
-			database='postgres'
-		)
+		conn = connect()
 		connect.autocommit = True
-		cursor = connect.cursor()
+		cursor = conn.cursor()
 
 		sys.stderr = open(os.devnull, 'w')
 		llm = Llama(model_path=os.path.join(os.path.dirname(__file__), './sqlcoder-7b-2.Q5_K_M.gguf'), use_mmap=False)
@@ -52,4 +47,4 @@ def sql_driver():
 
 	finally:
 		cursor.close()
-		connect.close()
+		conn.close()
