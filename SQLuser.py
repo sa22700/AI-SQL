@@ -36,7 +36,7 @@ def ask_user():
                 try:
                     if ph.verify(stored_hash, add_password):
                         print("Login successful!")
-                        break
+                        return True
 
                 except exceptions.VerifyMismatchError:
                     print("Wrong password.")
@@ -52,3 +52,4 @@ def ask_user():
     finally:
         cursor.close()
         conn.close()
+    return False

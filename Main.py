@@ -7,9 +7,9 @@ from DebugLog import log_error
 
 def main_menu():
     while True:
-        print("\n=== Main Menu ===")
+        print("\n--- Main Menu ---")
         print("1. Run SQL AI (SQLcoder)")
-        print("2. Create/edit database")
+        print("2. Create/edit database (admin only)")
         print("3. Add new user (admin only)")
         print("0. Logout / Exit")
 

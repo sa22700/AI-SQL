@@ -26,15 +26,15 @@ def database():
                 elif create_table == 'y':
                     table_name = input('Type new table name: ')
                     try:
-                        safe_sql = sql.SQL('''
-                            CREATE TABLE IF NOT EXISTS {} (
-                                id SERIAL PRIMARY KEY,
-                                part_name TEXT,
-                                part_number TEXT UNIQUE,
-                                category TEXT,
-                                price DOUBLE PRECISION
-                            );
-                        ''').format(sql.Identifier(table_name))
+                        safe_sql = sql.SQL(
+                            "CREATE TABLE IF NOT EXISTS {} ("
+                            "id SERIAL PRIMARY KEY, "
+                            "part_name TEXT, "
+                            "part_number TEXT UNIQUE, "
+                            "category TEXT, "
+                            "price DOUBLE PRECISION"
+                            ");"
+                        ).format(sql.Identifier(table_name))
                         cursor.execute(safe_sql)
                         print(f'Table "{table_name}" created.')
 
@@ -68,11 +68,10 @@ def database():
 
                 for part, number, category, price in data:
                     try:
-                        insert_sql = sql.SQL('''
-                            INSERT INTO {} (part_name, part_number, category, price)
-                            VALUES (%s, %s, %s, %s);
-                        ''').format(sql.Identifier(table_name))
-
+                        insert_sql = sql.SQL(
+                            "INSERT INTO {} (part_name, part_number, category, price) "
+                            "VALUES (%s, %s, %s, %s);"
+                        ).format(sql.Identifier(table_name))
                         cursor.execute(insert_sql, (part, number, category, price))
 
                     except psycopg2.Error as e:
@@ -81,7 +80,7 @@ def database():
 
                 print('-' * 32)
                 try:
-                    select_sql = sql.SQL('SELECT * FROM {}').format(sql.Identifier(table_name))
+                    select_sql = sql.SQL("SELECT * FROM {}").format(sql.Identifier(table_name))
                     cursor.execute(select_sql)
                     print('\nColumns:')
                     for column in cursor.description:

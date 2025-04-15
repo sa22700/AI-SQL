@@ -21,9 +21,29 @@ def sql_driver():
 			schema = json.load(f)
 
 		prompt = (
-			'ONLY return a pure SQL query that can be executed directly in PostgreSQL. '
-			'Do NOT explain, comment, or include anything else except the SQL query.\n'
+			"ONLY return a pure SQL query that can be executed directly in PostgreSQL. "
+			"Do NOT explain, comment, or include anything else except the SQL query. "
+			"Use ILIKE or LOWER(...) for text comparisons to make them case-insensitive.\n\n"
+			"Available tables and their columns:\n"
 		)
+
+		for table in schema:
+			table_name = table["table"]
+			prompt += f"\nTable '{table_name}' has the following columns:\n"
+			for col in table["columns"]:
+				col_name = col["name"]
+				description = ""
+				if col_name == "part_name":
+					description = " – name of the part, like 'Spark Plug' or 'Air Filter'"
+				elif col_name == "part_number":
+					description = " – unique identifier code for the part"
+				elif col_name == "category":
+					description = " – part category, like 'engine', 'brakes', etc."
+				elif col_name == "price":
+					description = " – price of the part in euros"
+				elif col_name == "id":
+					description = " – unique serial identifier"
+				prompt += f" - {col_name}{description}\n"
 
 		question = input('Type your SQL query: ')
 		auto_correct = f'{prompt} \n{schema} \nQuestion:\n {question}'
