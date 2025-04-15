@@ -25,8 +25,13 @@ def sql_driver():
 		with open(os.path.join(os.path.dirname(__file__), 'Schema.json')) as f:
 			schema = json.load(f)
 
+		prompt = (
+			'ONLY return a pure SQL query that can be executed directly in PostgreSQL. '
+			'Do NOT explain, comment, or include anything else except the SQL query.\n'
+		)
+
 		question = input('Type your SQL query: ')
-		auto_correct = f'{schema} \nQuestion:\n {question}'
+		auto_correct = f'{prompt} \n{schema} \nQuestion:\n {question}'
 
 		output = llm(
 			auto_correct,
@@ -36,15 +41,7 @@ def sql_driver():
 		output = output['choices'][0]['text']
 		print(f'{output}\n')
 
-		sql_lines = output.splitlines()
-		sql_only = "\n".join([
-			line[line.upper().find(k):]
-			for line in sql_lines
-			for k in ("SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP")
-			if k in line.upper()
-		])
-
-		cursor.execute(sql_only)
+		cursor.execute(output)
 		rows = cursor.fetchall()
 		for row in rows:
 			print(row)
