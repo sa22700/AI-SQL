@@ -25,7 +25,9 @@ def database():
                 cursor = connect.cursor()
 
                 create_table = input('Create table? (y/n): ').lower()
-                if create_table == 'y':
+                if create_table == 'n':
+                    break
+                elif create_table == 'y':
                     table_name = input('Type new table name: ')
                     try:
                         cursor.execute(f'''
