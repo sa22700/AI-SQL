@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2 import sql
 from SchemaBuilder import schema_tables, column_builder
 from DebugLog import log_error
 from Connection import connect
@@ -25,15 +26,16 @@ def database():
                 elif create_table == 'y':
                     table_name = input('Type new table name: ')
                     try:
-                        cursor.execute(f'''
-                        CREATE TABLE IF NOT EXISTS {table_name} (
-                        id SERIAL PRIMARY KEY,
-                        part_name TEXT,
-                        part_number TEXT UNIQUE,
-                        category TEXT,
-                        price DOUBLE PRECISION
-                        );
-                        ''')
+                        safe_sql = sql.SQL('''
+                            CREATE TABLE IF NOT EXISTS {} (
+                                id SERIAL PRIMARY KEY,
+                                part_name TEXT,
+                                part_number TEXT UNIQUE,
+                                category TEXT,
+                                price DOUBLE PRECISION
+                            );
+                        ''').format(sql.Identifier(table_name))
+                        cursor.execute(safe_sql)
                         print(f'Table "{table_name}" created.')
 
                     except psycopg2.Error as e:
@@ -66,18 +68,21 @@ def database():
 
                 for part, number, category, price in data:
                     try:
-                        cursor.execute(
-                            f'INSERT INTO {table_name} (part_name, part_number, category, price) VALUES (%s, %s, %s, %s);',
-                            (part, number, category, price)
-                        )
+                        insert_sql = sql.SQL('''
+                            INSERT INTO {} (part_name, part_number, category, price)
+                            VALUES (%s, %s, %s, %s);
+                        ''').format(sql.Identifier(table_name))
+
+                        cursor.execute(insert_sql, (part, number, category, price))
+
                     except psycopg2.Error as e:
                         print(f'Error inserting data: {e}')
                         log_error(f'Error inserting data: {e}')
 
                 print('-' * 32)
                 try:
-                    query = f'SELECT * FROM {table_name};'
-                    cursor.execute(query)
+                    select_sql = sql.SQL('SELECT * FROM {}').format(sql.Identifier(table_name))
+                    cursor.execute(select_sql)
                     print('\nColumns:')
                     for column in cursor.description:
                         print(column[0], end=' ')
