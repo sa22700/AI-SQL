@@ -4,7 +4,7 @@ import sys
 import psycopg2
 import json
 from DebugLog import log_error
-from Connection import connect
+from Connection import connect, cuda_available, estimate_n_gpu_layers
 
 def sql_driver():
 	conn = None
@@ -15,7 +15,15 @@ def sql_driver():
 		cursor = conn.cursor()
 
 		sys.stderr = open(os.devnull, 'w')
-		llm = Llama(model_path=os.path.join(os.path.dirname(__file__), './sqlcoder-7b-2.Q5_K_M.gguf'), use_mmap=False)
+
+		vram_gb = cuda_available()
+		if vram_gb > 0:
+			n_gpu_layers = estimate_n_gpu_layers(vram_gb)
+
+		else:
+			n_gpu_layers = 0
+
+		llm = Llama(model_path=os.path.join(os.path.dirname(__file__), './sqlcoder-7b-2.Q5_K_M.gguf'), use_mmap=False, n_gpu_layers=n_gpu_layers)
 
 		with open(os.path.join(os.path.dirname(__file__), 'Schema.json')) as f:
 			schema = json.load(f)
