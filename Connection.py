@@ -3,7 +3,7 @@ import subprocess
 
 def connect():
     return psycopg2.connect(
-        host='192.168.68.109',
+        host='100.82.7.110',
         user='admin',
         password='admin123',
         port='5432',

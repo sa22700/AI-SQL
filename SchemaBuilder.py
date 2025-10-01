@@ -35,9 +35,21 @@ def schema_tables(table_name, columns, filepath=os.path.join(os.path.dirname(__f
 
 def column_builder():
     return [
-        {"name": "id", "type": "SERIAL", "primary_key": True},
-        {"name": "part_name", "type": "TEXT"},
-        {"name": "part_number", "type": "TEXT", "unique": True},
-        {"name": "category", "type": "TEXT"},
-        {"name": "price", "type": "DOUBLE PRECISION"}
+        {"name": "id",
+         "type": "SERIAL",
+         "primary_key": True
+         },
+        {"name": "part_name",
+         "type": "TEXT"
+         },
+        {"name": "part_number",
+         "type": "TEXT",
+         "unique": True
+         },
+        {"name": "category",
+         "type": "TEXT"
+         },
+        {"name": "price",
+         "type": "DOUBLE PRECISION"
+         }
     ]

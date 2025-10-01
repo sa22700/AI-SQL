@@ -11,11 +11,9 @@ def sql_driver():
 	cursor = None
 	try:
 		conn = connect()
-		connect.autocommit = True
+		conn.autocommit = True
 		cursor = conn.cursor()
-
 		sys.stderr = open(os.devnull, 'w')
-
 		vram_gb = cuda_available()
 		if vram_gb > 0:
 			n_gpu_layers = estimate_n_gpu_layers(vram_gb)
@@ -23,9 +21,9 @@ def sql_driver():
 		else:
 			n_gpu_layers = 0
 
-		llm = Llama(model_path=os.path.join(os.path.dirname(__file__), './sqlcoder-7b-2.Q5_K_M.gguf'), use_mmap=False, n_gpu_layers=n_gpu_layers)
+		llm = Llama(model_path=os.path.join(os.path.dirname(__file__), './sqlcoder-7b-2.Q5_K_M.gguf'), use_mmap=False, n_gpu_layers=n_gpu_layers, n_ctx=4096)
 
-		with open(os.path.join(os.path.dirname(__file__), 'Schema.json')) as f:
+		with open(os.path.join(os.path.dirname(__file__), 'schema.json')) as f:
 			schema = json.load(f)
 
 		prompt = (
@@ -58,7 +56,7 @@ def sql_driver():
 
 		output = llm(
 			auto_correct,
-			max_tokens=512,
+			max_tokens=128,
 			echo=False
 		)
 		output = output['choices'][0]['text']
