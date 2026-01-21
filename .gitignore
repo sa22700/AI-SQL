@@ -146,7 +146,8 @@ venv.bak/
 # mkdocs documentation
 /site
 
- sqlcoder-7b-2.Q5_K_M.gguf
+sqlcoder-7b-2.Q5_K_M.gguf
+faster-whisper-small.en
 
 # mypy
 .mypy_cache/

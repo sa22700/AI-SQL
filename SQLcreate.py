@@ -4,6 +4,7 @@ from SchemaBuilder import schema_tables, column_builder
 from DebugLog import log_error
 from Connection import connect
 from argon2 import PasswordHasher, exceptions
+from getpass import getpass
 
 def database():
     conn = None
@@ -13,14 +14,12 @@ def database():
     data = None
     while True:
         login = input('Username: ')
-        main_password = input('Password: ')
-
+        main_password = getpass('Password: ')
         try:
             conn = connect()
             conn.autocommit = True
             cursor = conn.cursor()
             ph = PasswordHasher()
-
             cursor.execute('SELECT "password" FROM users WHERE username = %s', (login,))
             row = cursor.fetchone()
             if not row:
@@ -33,9 +32,9 @@ def database():
                 conn.close()
                 conn = None
                 continue
-
             try:
                 ph.verify(row[0], main_password)
+
             except (exceptions.VerifyMismatchError, exceptions.VerificationError):
                 print('Faulty username or password')
                 retry = input('Try again? (y/n): ')
@@ -77,7 +76,6 @@ def database():
 
             columns = column_builder()
             schema_tables(table_name, columns)
-
             add_data = input('Add data? (y/n): ').lower()
             if add_data == 'y':
                 data = []
@@ -97,19 +95,19 @@ def database():
                         break
                     elif add_more == 'y':
                         continue
+            if data:
+                for part, number, category, price in data:
+                    try:
+                        insert_sql = sql.SQL(
+                            f"INSERT INTO {table_name} (part_name, part_number, category, price) "
+                            "VALUES (%s, %s, %s, %s);"
+                        ).format(sql.Identifier(table_name))
+                        cursor.execute(insert_sql, (part, number, category, price))
+                        break
 
-            for part, number, category, price in data:
-                try:
-                    insert_sql = sql.SQL(
-                        f"INSERT INTO {table_name} (part_name, part_number, category, price) "
-                        "VALUES (%s, %s, %s, %s);"
-                    ).format(sql.Identifier(table_name))
-                    cursor.execute(insert_sql, (part, number, category, price))
-                    break
-
-                except psycopg2.Error as e:
-                    print(f'Error inserting data: {e}')
-                    log_error(f'Error inserting data: {e}')
+                    except psycopg2.Error as e:
+                        print(f'Error inserting data: {e}')
+                        log_error(f'Error inserting data: {e}')
 
             print('-' * 32)
             try:
@@ -121,9 +119,11 @@ def database():
                 print('\nRows:')
                 for row in cursor.fetchall():
                     print(row)
+
             except psycopg2.Error as e:
                 print(f'Error fetching data: {e}')
                 log_error(f'Error fetching data: {e}')
+            return
 
         except psycopg2.Error as e:
             print(f'Database error: {e}')

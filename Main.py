@@ -9,12 +9,10 @@ def main_menu():
     while True:
         print("\n--- Main Menu ---")
         print("1. Run SQL AI (SQLcoder)")
-        print("2. Create/edit database (admin only)")
+        print("2. Create database (admin only)")
         print("3. Add new user (admin only)")
         print("0. Logout / Exit")
-
         choice = input("Choose action: ")
-
         if choice == "1":
             sql_driver()
         elif choice == "2":
@@ -34,10 +32,10 @@ def start():
         else:
             print('Login failure')
             log_error('Login failure')
+
     except Exception as e:
         print(f'Unexpected error: {e}')
         log_error(f'Unexpected error in start(): {e}')
-
 
 if __name__ == '__main__':
     start()
