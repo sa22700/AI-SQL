@@ -7,8 +7,7 @@ from DebugLog import log_error
 from Connection import connect, cuda_available, estimate_n_gpu_layers
 from Whisper import speech_to_text
 
-
-def sql_driver():
+def sql_driver(question: str | None = None):
 	conn = None
 	cursor = None
 	try:
@@ -47,31 +46,30 @@ def sql_driver():
 				elif col_name == "id":
 					description = " – unique serial identifier"
 				prompt += f" - {col_name}{description}\n"
-		question = input("Type your SQL question (or press Enter to speak): ").strip()
-		if not question:
-			print("Speak now. Press Enter to stop recording.")
-			question = speech_to_text(language="en")
+		if question is None:
+			question = input("Type your SQL question (or press Enter to speak): ").strip()
 			if not question:
-				print("No audio captured.")
-				return
-			print(f"Heard: {question}")
-		auto_correct = f'{prompt} \n{schema} \nQuestion:\n {question}'
+				print("Speak now. Press Enter to stop recording.")
+				question = speech_to_text(language="en")
+				if not question:
+					return {'error': 'No audio captured.'}
+		auto_correct = f"{prompt}\nQuestion:\n{question}"
 		output = llm(
 			auto_correct,
 			max_tokens=128,
 			echo=False
 		)
-		output = output['choices'][0]['text']
-		print(f'{output}\n')
-		cursor.execute(output)
-		rows = cursor.fetchall()
-		for row in rows:
-			print(row)
+		sql_query = output['choices'][0]['text'].strip()
+		cursor.execute(sql_query)
+		row = cursor.fetchall()
+		return {'sql': sql_query, 'rows': [list(r) for r in row]}
 
 	except psycopg2.Error as e:
-		print(f'Error in sql_driver: {e}')
 		log_error(f'Error in sql_driver: {e}')
+		return {"error": str(e)}
 
 	finally:
-		cursor.close()
-		conn.close()
+		if cursor is not None:
+			cursor.close()
+		if conn is not None:
+			conn.close()

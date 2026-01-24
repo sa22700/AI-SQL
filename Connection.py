@@ -12,11 +12,11 @@ def connect():
         database=os.environ['DB_NAME']
     )
 
-def cuda_available():
+def cuda_available() -> float:
     try:
         nvidia_smi = shutil.which("nvidia-smi")
         if not nvidia_smi:
-            return 0
+            return 0.0
         result = subprocess.run(
             [nvidia_smi, "--query-gpu=memory.total", "--format=csv,noheader,nounits"],
             check=True,
@@ -24,12 +24,23 @@ def cuda_available():
             stderr=subprocess.PIPE,
             text=True
         )
-        vram_mb = int(result.stdout.strip().split('\n')[0])
-        return vram_mb / 1024
+        values: list[int] = []
+        for line in result.stdout.splitlines():
+            if not line:
+                continue
+            try:
+                values.append(int(line))
+
+            except ValueError:
+                continue
+
+        if not values:
+            return 0.0
+        return max(values) / 1024.0
 
     except Exception as e:
         print(f"VRAM-check failed: {e}")
-        return 0
+        return 0.0
 
 def estimate_n_gpu_layers(vram_gb):
     if vram_gb <= 0:

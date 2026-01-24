@@ -4,76 +4,104 @@ from DebugLog import log_error
 from Connection import connect
 from getpass import getpass
 
-def add_new_user():
+def add_new_user(
+        admin_username: str | None = None,
+        admin_password: str | None = None,
+        new_username: str | None = None,
+        new_password: str | None = None,
+        confirm_password: str | None = None
+    ):
     cursor = None
     conn = None
-    print('Login into main account!')
-    while True:
-        login = input('Username: ')
-        main_password = getpass('Password: ')
-        try:
-            conn = connect()
-            conn.autocommit = True
-            cursor = conn.cursor()
-            ph = PasswordHasher()
-            cursor.execute('SELECT "password" FROM users WHERE username = %s', (login,))
+    ph = PasswordHasher()
+    interactive = (
+            admin_username is None or admin_password is None or
+            new_username is None or new_password is None or
+            confirm_password is None
+        )
+    try:
+        conn = connect()
+        conn.autocommit = True
+        cursor = conn.cursor()
+        if interactive:
+            print('Login into main account!')
+            while True:
+                admin_username = input('Username: ').strip()
+                admin_password = getpass('Password: ')
+                cursor.execute('SELECT "password" FROM users WHERE username = %s', (admin_username,))
+                row = cursor.fetchone()
+                if not row:
+                    retry = input('Faulty username or password. Try again? (y/n): ').strip().lower()
+                    if retry != 'y':
+                        return {'error': 'Cancelled'}
+                    continue
+                try:
+                    ph.verify(row[0], admin_password)
+                    break
+
+                except (exceptions.VerifyMismatchError, exceptions.VerificationError):
+                    retry = input("Faulty username or password. Try again? (y/n): ").strip().lower()
+                    if retry != "y":
+                        return {"error": "Cancelled"}
+                    continue
+        else:
+            cursor.execute('SELECT "password" FROM users WHERE username = %s', (admin_username,))
             row = cursor.fetchone()
             if not row:
-                print('Faulty username or password')
-                retry = input('Try again? (y/n): ')
-                if retry.lower() != 'y':
-                    break
-                cursor.close()
-                cursor = None
-                conn.close()
-                conn = None
-                continue
+                return {"error": "Invalid admin credentials"}
             try:
-                ph.verify(row[0], main_password)
-
+                ph.verify(row[0], admin_password)
             except (exceptions.VerifyMismatchError, exceptions.VerificationError):
-                print('Faulty username or password')
-                retry = input('Try again? (y/n): ')
-                if retry.lower() != 'y':
-                    break
-                cursor.close()
-                cursor = None
-                conn.close()
-                conn = None
-                continue
+                return {"error": "Invalid admin credentials"}
 
-            add_user = input('Add new user username: ')
-            add_password = getpass('Add new password: ')
-            again_password = getpass('Confirm password: ')
-            if add_password != again_password:
-                print('Passwords do not match.')
-                continue
-            if not add_password:
-                print('Password cannot be empty.')
-                continue
-            cursor.execute('SELECT * FROM users WHERE username = %s', (add_user,))
-            if cursor.fetchone():
-                print('Username already exists.')
-                continue
-            hashed_password = ph.hash(add_password)
-            cursor.execute(f'INSERT INTO users (username, "password") VALUES (%s, %s)',
-                    (add_user, hashed_password ))
-            print(f'Username {add_user} added.')
-            add_more = input('Do you want to add more? (y/n)')
-            if add_more == 'y':
-                continue
-            elif add_more == 'n':
-                break
-            else:
-                print('Faulty username or password')
-                retry = input('Try again? (y/n): ')
-                if retry.lower() != 'y':
-                    break
+        if interactive:
+            while True:
+                new_username = input("Add new username: ").strip()
+                new_password = getpass("Add new password: ")
+                confirm_password = getpass("Confirm new password: ")
+                if new_password != confirm_password:
+                    print("Passwords do not match.")
+                    continue
+                if not new_password:
+                    print("Password cannot be empty")
+                    continue
+                cursor.execute('SELECT 1 FROM users WHERE username = %s', (new_username,))
+                row = cursor.fetchone()
+                if row:
+                    print("Username already exists.")
+                    continue
+                hashed = ph.hash(new_password)
+                cursor.execute(
+                    'INSERT INTO users (username, "password") VALUES (%s, %s)',
+                    (new_username, hashed)
+                )
+                print(f"Username {new_username} added.")
+                add_more = input("Do you want to add more? (y/n): ").strip().lower()
+                if add_more != "y":
+                    return {"ok": True, "username": new_username}
 
-        except psycopg2.Error as e:
-            print(f'Error: {e}')
+        else:
+            if new_password != confirm_password:
+                return {'error': 'Password  do not match'}
+            if not new_password:
+                return {"error": "Password cannot be empty"}
+            cursor.execute('SELECT 1 FROM users WHERE username = %s', (new_username,))
+            row = cursor.fetchone()
+            if row:
+                return {"error": "Username already exists"}
+            hashed = ph.hash(new_password)
+            cursor.execute(
+                'INSERT INTO users (username, "password") VALUES (%s, %s)',
+                (new_username, hashed)
+                )
+            return {"ok": True, "username": new_username}
+
+    except psycopg2.Error as e:
             log_error(f'Error: {e}')
+            return {'error': str(e)}
 
-        finally:
+    finally:
+        if cursor is not None:
             cursor.close()
+        if conn is not None:
             conn.close()
