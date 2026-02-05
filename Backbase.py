@@ -1,10 +1,17 @@
-from fastapi import FastAPI, HTTPException, Response, status
 from pydantic import BaseModel
 
-class SqlAI(BaseModel):
+class LoginRequest(BaseModel):
     username: str
     password: str
 
-class SqlSystem(SqlAI):
-    table_name: str
-    column: int
+class LoginResponse(BaseModel):
+    ok: bool
+    username: str | None = None
+    error: str | None = None
+
+class AskRequest(LoginRequest):
+    question: str
+
+class AskResponse(BaseModel):
+    sql: str
+    rows: list[list]
