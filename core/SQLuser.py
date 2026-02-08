@@ -1,7 +1,7 @@
 import psycopg2
 from argon2 import PasswordHasher, exceptions
-from DebugLog import log_error
-from Connection import connect
+from core.DebugLog import log_error
+from core.Connection import connect
 from getpass import getpass
 
 def ask_user(

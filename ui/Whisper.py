@@ -7,7 +7,7 @@ import numpy as np
 import sounddevice as sd
 from faster_whisper import WhisperModel
 
-MODEL_DIR = os.path.join(os.path.dirname(__file__), "faster-whisper-small.en")
+MODEL_DIR = os.path.join(os.path.dirname(__file__), "../faster-whisper-small.en")
 SR = 16000
 BEAM = 5
 

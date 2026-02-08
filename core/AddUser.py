@@ -1,7 +1,7 @@
 import psycopg2
 from argon2 import PasswordHasher, exceptions
-from DebugLog import log_error
-from Connection import connect
+from core.DebugLog import log_error
+from core.Connection import connect
 from getpass import getpass
 
 def add_new_user(
@@ -51,12 +51,18 @@ def add_new_user(
                 return {"error": "Invalid admin credentials"}
             try:
                 ph.verify(row[0], admin_password)
+
             except (exceptions.VerifyMismatchError, exceptions.VerificationError):
+                log_error("Invalid admin credentials")
                 return {"error": "Invalid admin credentials"}
 
         if interactive:
             while True:
                 new_username = input("Add new username: ").strip()
+                new_username = (new_username or "").strip()
+                if not new_username:
+                    print("Username cannot be empty")
+                    continue
                 new_password = getpass("Add new password: ")
                 confirm_password = getpass("Confirm new password: ")
                 if new_password != confirm_password:
@@ -79,10 +85,12 @@ def add_new_user(
                 add_more = input("Do you want to add more? (y/n): ").strip().lower()
                 if add_more != "y":
                     return {"ok": True, "username": new_username}
-
         else:
+            new_username = (new_username or "").strip()
+            if not new_username:
+                return {"error": "Username cannot be empty"}
             if new_password != confirm_password:
-                return {'error': 'Password  do not match'}
+                return {"error": "Passwords do not match"}
             if not new_password:
                 return {"error": "Password cannot be empty"}
             cursor.execute('SELECT 1 FROM users WHERE username = %s', (new_username,))
@@ -93,7 +101,7 @@ def add_new_user(
             cursor.execute(
                 'INSERT INTO users (username, "password") VALUES (%s, %s)',
                 (new_username, hashed)
-                )
+            )
             return {"ok": True, "username": new_username}
 
     except psycopg2.Error as e:

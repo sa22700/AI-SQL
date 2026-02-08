@@ -1,8 +1,8 @@
 import json
 import os
-from DebugLog import log_error
+from core.DebugLog import log_error
 
-SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema.json")
+SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "../logs/schema.json")
 
 def schema_reader(filepath: str = SCHEMA_PATH) -> list:
     if not os.path.exists(filepath):

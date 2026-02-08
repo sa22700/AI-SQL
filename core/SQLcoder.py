@@ -3,9 +3,9 @@ from llama_cpp import Llama
 import sys
 import psycopg2
 import json
-from DebugLog import log_error
-from Connection import connect, cuda_available, estimate_n_gpu_layers
-from Whisper import speech_to_text
+from core.DebugLog import log_error
+from core.Connection import connect, cuda_available, estimate_n_gpu_layers
+from ui.Whisper import speech_to_text
 
 def sql_driver(question: str | None = None):
 	conn = None
@@ -20,8 +20,8 @@ def sql_driver(question: str | None = None):
 			n_gpu_layers = estimate_n_gpu_layers(vram_gb)
 		else:
 			n_gpu_layers = 0
-		llm = Llama(model_path=os.path.join(os.path.dirname(__file__), './sqlcoder-7b-2.Q5_K_M.gguf'), use_mmap=False, n_gpu_layers=n_gpu_layers, n_ctx=4096)
-		with open(os.path.join(os.path.dirname(__file__), 'schema.json')) as f:
+		llm = Llama(model_path=os.path.join(os.path.dirname(__file__), '../sqlcoder-7b-2.Q5_K_M.gguf'), use_mmap=False, n_gpu_layers=n_gpu_layers, n_ctx=4096)
+		with open(os.path.join(os.path.dirname(__file__), '../logs/schema.json')) as f:
 			schema = json.load(f)
 		prompt = (
 			"ONLY return a pure SQL query that can be executed directly in PostgreSQL. "

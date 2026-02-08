@@ -1,8 +1,9 @@
-from SQLuser import ask_user
-from SQLcreate import database
-from SQLcoder import sql_driver
-from AddUser import add_new_user
-from DebugLog import log_error
+from core.SQLuser import ask_user
+from core.SQLcreate import database
+from core.SQLcoder import sql_driver
+from core.AddUser import add_new_user
+from core.DebugLog import log_error
+from core.DelUser import delete_user
 
 def main_menu():
     while True:
@@ -10,6 +11,7 @@ def main_menu():
         print("1. Run SQL AI (SQLcoder)")
         print("2. Create database (admin only)")
         print("3. Add new user (admin only)")
+        print("4. Delete user (admin only)")
         print("0. Logout / Exit")
         choice = input("Choose action: ")
         if choice == "1":
@@ -18,6 +20,8 @@ def main_menu():
             database()
         elif choice == "3":
             add_new_user()
+        elif choice == "4":
+            delete_user()
         elif choice == "0":
             print("Logging out. Goodbye!")
             break
