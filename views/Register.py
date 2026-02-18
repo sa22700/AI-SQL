@@ -52,8 +52,8 @@ def show_register(page: ft.Page, state, api, go):
                 confirm_tf,
                 ft.Row(
                     [
-                        ft.ElevatedButton("Create", on_click=create_user_click),
-                        ft.ElevatedButton("Back", on_click=back_click)
+                        ft.Button("Create", on_click=create_user_click),
+                        ft.Button("Back", on_click=back_click)
                     ],
                     alignment=ft.MainAxisAlignment.CENTER
                 ),

@@ -16,9 +16,7 @@ class AskResponse(BaseModel):
     sql: str
     rows: list[list]
 
-class AddUserRequest(BaseModel):
-    admin_username: str
-    admin_password: str
+class AddUserRequest(LoginRequest):
     new_username: str
     new_password: str
     confirm_password: str
@@ -29,9 +27,7 @@ class AddUserResponse(BaseModel):
     error: str | None = None
 
 
-class DeleteUserRequest(BaseModel):
-    admin_username: str
-    admin_password: str
+class DeleteUserRequest(LoginRequest):
     username_to_delete: str
 
 class DeleteUserResponse(BaseModel):
@@ -45,9 +41,7 @@ class DbRow(BaseModel):
     category: str
     price: float
 
-class DatabaseRequest(BaseModel):
-    admin_username: str
-    admin_password: str
+class DatabaseRequest(LoginRequest):
     create_table: bool
     table_name: str
     rows: list[DbRow] = []

@@ -8,8 +8,8 @@ def show_query(page: ft.Page, state, api, go):
     page.clean()
     question_tf = ft.TextField(label="Question", multiline=True, min_lines=3, max_lines=6, width=600)
     status_txt = ft.Text("")
-    result_tf = ft.TextField(label="Result", multiline=True, read_only=True, width=600, min_lines=8)
-    record_btn = ft.ElevatedButton("Record")
+    result_tf = ft.Text(label="Result", multiline=True, read_only=True, width=600, min_lines=8)
+    record_btn = ft.Button("Record")
     rec_state = {
         "recording": False,
         "stop_event": None,
@@ -92,12 +92,12 @@ def show_query(page: ft.Page, state, api, go):
                 ft.Row(
                     [
                         record_btn,
-                        ft.ElevatedButton("Run", on_click=run_click),
-                        ft.ElevatedButton("Database", on_click=go_database()),
-                        ft.ElevatedButton("Add user", on_click=go_register()),
-                        ft.ElevatedButton("Delete user", on_click=go_delete()),
-                        ft.ElevatedButton("Logout", on_click=logout_click),
-                        ft.ElevatedButton("Exit", on_click=exit_click)
+                        ft.Button("Run", on_click=run_click),
+                        ft.Button("Database", on_click=go_database),
+                        ft.Button("Add user", on_click=go_register),
+                        ft.Button("Delete user", on_click=go_delete),
+                        ft.Button("Logout", on_click=logout_click),
+                        ft.Button("Exit", on_click=exit_click)
                     ],
                     alignment=ft.MainAxisAlignment.CENTER
                 ),

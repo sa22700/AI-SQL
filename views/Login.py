@@ -40,8 +40,8 @@ def show_login(page: ft.Page, state, api, go):
                 password_tf,
                 ft.Row(
                     [
-                        ft.ElevatedButton("Login", on_click=login_click),
-                        ft.ElevatedButton("Exit", on_click=exit_click)
+                        ft.Button("Login", on_click=login_click),
+                        ft.Button("Exit", on_click=exit_click)
                     ],
                     alignment=ft.MainAxisAlignment.CENTER
                 ),

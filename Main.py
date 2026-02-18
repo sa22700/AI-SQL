@@ -4,6 +4,9 @@ from core.SQLcoder import sql_driver
 from core.AddUser import add_new_user
 from core.DebugLog import log_error
 from core.DelUser import delete_user
+from core.DelTable import drop_table
+from core.DelParts import delete_part
+from core.UpdParts import update_part
 
 def main_menu():
     while True:
@@ -12,17 +15,26 @@ def main_menu():
         print("2. Create database (admin only)")
         print("3. Add new user (admin only)")
         print("4. Delete user (admin only)")
+        print("5. Delete table (admin only)")
+        print("6. Delete parts (admin only)")
+        print("7. Update parts (admin only")
         print("0. Logout / Exit")
-        choice = input("Choose action: ")
-        if choice == "1":
+        choice = input(int("Choose action: "))
+        if choice == 1:
             sql_driver()
-        elif choice == "2":
+        elif choice == 2:
             database()
-        elif choice == "3":
+        elif choice == 3:
             add_new_user()
-        elif choice == "4":
+        elif choice == 4:
             delete_user()
-        elif choice == "0":
+        elif choice == 5:
+            drop_table()
+        elif choice == 6:
+            delete_part()
+        elif choice == 7:
+            update_part()
+        elif choice == 0:
             print("Logging out. Goodbye!")
             break
         else:

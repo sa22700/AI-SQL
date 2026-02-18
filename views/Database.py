@@ -90,8 +90,8 @@ def show_database(page: ft.Page, state, api, go):
                 rows_tf,
                 ft.Row(
                     [
-                        ft.ElevatedButton("Run DB", on_click=run_db_click),
-                        ft.ElevatedButton("Back", on_click=back_click)
+                        ft.Button("Run DB", on_click=run_db_click),
+                        ft.Button("Back", on_click=back_click)
                     ],
                     alignment=ft.MainAxisAlignment.CENTER
                 ),

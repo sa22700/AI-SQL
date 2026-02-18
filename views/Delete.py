@@ -54,8 +54,8 @@ def show_delete(page: ft.Page, state, api, go):
                 confirm_cb,
                 ft.Row(
                     [
-                        ft.ElevatedButton("Delete", on_click=do_delete_click),
-                        ft.ElevatedButton("Back", on_click=back_click)
+                        ft.Button("Delete", on_click=do_delete_click),
+                        ft.Button("Back", on_click=back_click)
                     ],
                     alignment=ft.MainAxisAlignment.CENTER
                 ),
