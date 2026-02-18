@@ -1,6 +1,6 @@
 import psycopg2
 from psycopg2 import sql
-from SchemaBuilder import schema_tables, column_builder
+from core.SchemaBuilder import schema_tables, column_builder
 from core.DebugLog import log_error
 from core.Connection import connect
 from argon2 import PasswordHasher, exceptions
