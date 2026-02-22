@@ -30,16 +30,15 @@ def update_part(
             admin_username = (input("Admin username: ") or "").strip()
         if admin_password is None:
             admin_password = getpass("Admin password: ")
-        cursor.execute('SELECT "password" FROM users WHERE username = %s', (admin_username,))
+        cursor.execute('SELECT "password" FROM users WHERE username = %s',
+            (admin_username,))
         row = cursor.fetchone()
         if not row:
             return {"error": "Invalid admin credentials"}
         try:
             ph.verify(row[0], admin_password)
-
         except (exceptions.VerifyMismatchError, exceptions.VerificationError):
             return {"error": "Invalid admin credentials"}
-
         table_name = (table_name or "").strip()
         part_number = (part_number or "").strip()
         if not table_name:
@@ -67,22 +66,25 @@ def update_part(
             params.append(price)
         if not sets:
             return {"error": "Nothing to update"}
-        if confirm and interactive:
-            ans = (input(
-                f"Update part '{part_number}' in table '{table_name}' with {len(sets)} change(s)? (y/n): "
-            ) or "").strip().lower()
-            if ans != "y":
-                return {"error": "Cancelled"}
+        if confirm:
+            if interactive:
+                ans = (input(
+                    f"Update part '{part_number}' in table '{table_name}' with {len(sets)} change(s)? (y/n): "
+                ) or "").strip().lower()
+                if ans != "y":
+                    return {"error": "Cancelled"}
+            else:
+                return {"error": "Confirmation required"}
         params.append(part_number)
         update_sql = (
             sql.SQL(
                 "UPDATE {} SET "
             ).format(sql.Identifier(table_name))
             + sql.SQL(
-                ", "
-            ).join(sets)
+            ", "
+        ).join(sets)
             + sql.SQL(
-                " WHERE part_number = %s RETURNING *;"
+            " WHERE part_number = %s RETURNING *;"
         ))
         cursor.execute(update_sql, tuple(params))
         row = cursor.fetchone()

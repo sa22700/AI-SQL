@@ -27,7 +27,8 @@ def delete_part(
             admin_username = (input("Admin username: ") or "").strip()
         if admin_password is None:
             admin_password = getpass("Admin password: ")
-        cursor.execute('SELECT "password" FROM users WHERE username = %s', (admin_username,))
+        cursor.execute('SELECT "password" FROM users WHERE username = %s',
+            (admin_username,))
         row = cursor.fetchone()
         if not row:
             return {"error": "Invalid admin credentials"}
@@ -43,14 +44,19 @@ def delete_part(
             return {"error": "Missing table_name"}
         if not part_number:
             return {"error": "Missing part_number"}
-        if confirm and interactive:
-            ans = (input(f"Delete part '{part_number}' from table '{table_name}'? (y/n): ") or "").strip().lower()
-            if ans != "y":
-                return {"error": "Cancelled"}
+        if confirm:
+            if interactive:
+                ans = (input(
+                    f"Delete part '{part_number}' from table '{table_name}'? (y/n): "
+                ) or "").strip().lower()
+                if ans != "y":
+                    return {"error": "Cancelled"}
+            else:
+                return {"error": "Confirmation required"}
+
         del_sql = sql.SQL(
             "DELETE FROM {} WHERE part_number = %s;"
-        ).format(
-            sql.Identifier(table_name)
+        ).format(sql.Identifier(table_name)
         )
         cursor.execute(del_sql, (part_number,))
         if cursor.rowcount == 0:

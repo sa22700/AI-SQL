@@ -24,7 +24,7 @@ def show_login(page: ft.Page, state, api, go):
                 return
             state.username = username_tf.value
             state.password = password_tf.value
-            go("query")
+            go("main menu")
 
         except Exception as ex:
             status_txt.value = f"Request failed: {ex}"

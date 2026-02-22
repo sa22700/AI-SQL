@@ -8,7 +8,7 @@ def show_query(page: ft.Page, state, api, go):
     page.clean()
     question_tf = ft.TextField(label="Question", multiline=True, min_lines=3, max_lines=6, width=600)
     status_txt = ft.Text("")
-    result_tf = ft.Text(label="Result", multiline=True, read_only=True, width=600, min_lines=8)
+    result_tf = ft.Text("")
     record_btn = ft.Button("Record")
     rec_state = {
         "recording": False,
@@ -75,14 +75,8 @@ def show_query(page: ft.Page, state, api, go):
     async def exit_click(e):
         await page.window.destroy()
 
-    async def go_database(e):
-        go("database")
-
-    async def go_register(e):
-        go("register")
-
-    async def go_delete(e):
-        go("delete")
+    async def back_click(e):
+        go("main menu")
 
     page.add(
         ft.Column(
@@ -93,9 +87,7 @@ def show_query(page: ft.Page, state, api, go):
                     [
                         record_btn,
                         ft.Button("Run", on_click=run_click),
-                        ft.Button("Database", on_click=go_database),
-                        ft.Button("Add user", on_click=go_register),
-                        ft.Button("Delete user", on_click=go_delete),
+                        ft.Button("Back", on_click=back_click),
                         ft.Button("Logout", on_click=logout_click),
                         ft.Button("Exit", on_click=exit_click)
                     ],

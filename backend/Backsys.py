@@ -1,10 +1,10 @@
 from fastapi import FastAPI, HTTPException
-from Backbase import LoginRequest, LoginResponse, AskRequest, AskResponse, AddUserRequest, AddUserResponse, DeleteUserRequest, DeleteUserResponse, DatabaseRequest, DatabaseResponse
+from backend.Backbase import LoginRequest, LoginResponse, AskRequest, AskResponse, AddUserRequest, AddUserResponse, DeleteUserRequest, DeleteUserResponse, DatabaseRequest, DatabaseResponse
 from core.SQLcoder import sql_driver
 from core.AddUser import add_new_user
 from core.Connection import connect
 from core.SQLcreate import database
-from Depend import _verify_user, _verify_admin
+from backend.Depend import _verify_user, _verify_admin
 
 app = FastAPI()
 

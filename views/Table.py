@@ -1,15 +1,15 @@
 import flet as ft
 
-def show_delete(page: ft.Page, state, api, go):
+def show_delete_table(page: ft.Page, state, api, go):
     page.clean()
-    username_del_tf = ft.TextField(label="Username to delete", width=400)
+    table_del_tf = ft.TextField(label="Table to delete", width=400)
     confirm_cb = ft.Checkbox(label="I confirm delete", value=False)
     status_txt = ft.Text("")
 
     async def do_delete_click(e):
-        user = (username_del_tf.value or "").strip()
-        if not user:
-            status_txt.value = "Username missing"
+        table_name = (table_del_tf.value or "").strip()
+        if not table_name:
+            status_txt.value = "Table missing"
             page.update()
             return
         if not confirm_cb.value:
@@ -19,23 +19,21 @@ def show_delete(page: ft.Page, state, api, go):
         payload = {
             "admin_username": state.username,
             "admin_password": state.password,
-            "username_to_delete": user
+            "table_name": table_name,
+            "cascade": False,
+            "confirm": False,  # UI hoitaa varmistuksen
         }
         status_txt.value = "Deleting..."
         page.update()
         try:
-            loader = await api.delete_user(payload)
-            if not (200 <= loader.status_code < 300):
-                try:
-                    status_txt.value = f"Delete failed: {loader.json().get('detail')}"
-
-                except Exception:
-                    status_txt.value = f"Delete failed: {loader.text}"
-
+            loader = await api.drop_table(payload)  # tee tämä metodi backend-clientiin
+            data = loader.json() if loader is not None else {}
+            if not (200 <= loader.status_code < 300) or data.get("error"):
+                detail = data.get("detail") or data.get("error") or getattr(loader, "text", "Unknown error")
+                status_txt.value = f"Delete failed: {detail}"
                 page.update()
                 return
-            data = loader.json()
-            status_txt.value = f"OK: deleted {data.get('deleted')}"
+            status_txt.value = f"OK: dropped {data.get('dropped')}"
             confirm_cb.value = False
             page.update()
 
@@ -50,18 +48,18 @@ def show_delete(page: ft.Page, state, api, go):
         ft.Column(
             [
                 ft.Text(f"Admin: {state.username}"),
-                username_del_tf,
+                table_del_tf,
                 confirm_cb,
                 ft.Row(
                     [
                         ft.Button("Delete", on_click=do_delete_click),
-                        ft.Button("Back", on_click=back_click)
+                        ft.Button("Back", on_click=back_click),
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER
+                    alignment=ft.MainAxisAlignment.CENTER,
                 ),
-                status_txt
+                status_txt,
             ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
     )
     page.update()

@@ -1,11 +1,13 @@
 import httpx
 
 class ApiClient:
-    def __init__(self, base_url: str):
-        self.base_url = base_url
+    def __init__(self, base_url: str, timeout: float = 30.0):
+        self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
 
-    async def _post(self, path: str, payload: dict, timeout: float):
-        async with httpx.AsyncClient() as client:
+    async def _post(self, path: str, payload: dict, timeout: float | None = None):
+        t = self.timeout if timeout is None else timeout
+        async with httpx.AsyncClient(timeout=t) as client:
             return await client.post(f"{self.base_url}{path}", json=payload)
 
     async def login(self, username: str, password: str):

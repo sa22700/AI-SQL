@@ -79,7 +79,7 @@ def show_database(page: ft.Page, state, api, go):
             page.update()
 
     async def back_click(e):
-        go("query")
+        go("main menu")
 
     page.add(
         ft.Column(

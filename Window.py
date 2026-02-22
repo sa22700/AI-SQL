@@ -7,6 +7,10 @@ from views.Query import show_query
 from views.Register import show_register
 from views.Delete import show_delete
 from views.Database import show_database
+from views.Menu import show_page
+from views.Table import show_delete_table
+from views.Parts import show_delete_part
+from views.Update import show_update_part
 
 API_BASE = os.getenv("API_BASE")
 
@@ -35,12 +39,28 @@ def main(page: ft.Page):
     def route_database() -> None:
         show_database(page, state, api, go)
 
+    def route_main() -> None:
+        show_page(page, state, api, go)
+
+    def route_table() -> None:
+        show_delete_table(page, state, api, go)
+
+    def route_parts() -> None:
+        show_delete_part(page, state, api, go)
+
+    def route_update() -> None:
+        show_update_part(page, state, api, go)
+
     routes = {
         "login": route_login,
         "query": route_query,
         "register": route_register,
         "delete": route_delete,
-        "database": route_database
+        "database": route_database,
+        "main menu": route_main,
+        "table": route_table,
+        "parts": route_parts,
+        "update": route_update
     }
     go("login")
 ft.run(main)
