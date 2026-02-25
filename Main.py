@@ -19,7 +19,12 @@ def main_menu():
         print("6. Delete parts (admin only)")
         print("7. Update parts (admin only")
         print("0. Logout / Exit")
-        choice = int(input("Choose action: "))
+        while True:
+            try:
+                choice = int(input("Choose action: "))
+                break
+            except ValueError:
+                print("Invalid choice. Please enter a number.")
         if choice == 1:
             sql_driver()
         elif choice == 2:
