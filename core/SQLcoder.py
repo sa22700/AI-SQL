@@ -5,7 +5,6 @@ import psycopg2
 import json
 from core.DebugLog import log_error
 from core.Connection import connect, cuda_available, estimate_n_gpu_layers
-from ui.Whisper import speech_to_text
 
 def sql_driver(question: str | None = None):
 	conn = None
@@ -47,12 +46,15 @@ def sql_driver(question: str | None = None):
 					description = " – unique serial identifier"
 				prompt += f" - {col_name}{description}\n"
 		if question is None:
-			question = input("Type your SQL question (or press Enter to speak): ").strip()
+			while True:
+				question = (input("Type your SQL question: ") or "").strip()
+				if question:
+					break
+				print("Question cannot be empty.")
+		else:
+			question = (question or "").strip()
 			if not question:
-				print("Speak now. Press Enter to stop recording.")
-				question = speech_to_text(language="en")
-				if not question:
-					return {'error': 'No audio captured.'}
+				return {"error": "Question cannot be empty"}
 		auto_correct = f"{prompt}\nQuestion:\n{question}"
 		output = llm(
 			auto_correct,
@@ -60,6 +62,8 @@ def sql_driver(question: str | None = None):
 			echo=False
 		)
 		sql_query = output['choices'][0]['text'].strip()
+		if not sql_query:
+			return {"error": "Model returned empty SQL query"}
 		cursor.execute(sql_query)
 		row = cursor.fetchall()
 		return {'sql': sql_query, 'rows': [list(r) for r in row]}

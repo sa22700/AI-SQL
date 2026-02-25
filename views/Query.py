@@ -1,46 +1,11 @@
 import flet as ft
-import asyncio
-import threading
 from ui.Utils import clean_rows
-from ui.Whisper import record_audio, transcribe_audio, SR
 
 def show_query(page: ft.Page, state, api, go):
     page.clean()
     question_tf = ft.TextField(label="Question", multiline=True, min_lines=3, max_lines=6, width=600)
     status_txt = ft.Text("")
     result_tf = ft.Text("")
-    record_btn = ft.Button("Record")
-    rec_state = {
-        "recording": False,
-        "stop_event": None,
-        "task": None
-    }
-
-    async def _record_worker(stop_event: threading.Event):
-        audio = await asyncio.to_thread(record_audio, SR, stop_event)
-        text = await asyncio.to_thread(transcribe_audio, audio, "en")
-        question_tf.value = text
-        status_txt.value = "Speech OK"
-        rec_state["recording"] = False
-        rec_state["stop_event"] = None
-        rec_state["task"] = None
-        record_btn.text = "Record"
-        page.update()
-
-    async def record_toggle(e):
-        if not rec_state["recording"]:
-            rec_state["recording"] = True
-            rec_state["stop_event"] = threading.Event()
-            record_btn.text = "Stop"
-            status_txt.value = "Recording..."
-            page.update()
-            rec_state["task"] = asyncio.create_task(_record_worker(rec_state["stop_event"]))
-            return
-        if rec_state["stop_event"] is not None:
-            status_txt.value = "Stopping..."
-            rec_state["stop_event"].set()
-            page.update()
-    record_btn.on_click = record_toggle
 
     async def run_click(e):
         if not question_tf.value:
@@ -85,7 +50,6 @@ def show_query(page: ft.Page, state, api, go):
                 question_tf,
                 ft.Row(
                     [
-                        record_btn,
                         ft.Button("Run", on_click=run_click),
                         ft.Button("Back", on_click=back_click),
                         ft.Button("Logout", on_click=logout_click),
