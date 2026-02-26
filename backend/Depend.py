@@ -1,4 +1,3 @@
-import os
 from fastapi import HTTPException
 from core.SQLuser import ask_user
 
@@ -10,7 +9,6 @@ def _verify_user(username: str, password: str) -> dict:
 
 def _verify_admin(username: str, password: str) -> dict:
     res = _verify_user(username, password)
-    admin_user = os.getenv("DB_USER", "")
-    if username != admin_user:
+    if not res.get("user", {}).get("is_admin"):
         raise HTTPException(status_code=403, detail="Admin required")
     return res

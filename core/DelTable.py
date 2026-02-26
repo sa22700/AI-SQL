@@ -18,17 +18,24 @@ def drop_table(
     interactive = (
         admin_username is None
         or admin_password is None
-        or table_name is None)
+        or table_name is None
+    )
     try:
         conn = connect()
         conn.autocommit = True
         cursor = conn.cursor()
-        if admin_username is None:
+        if interactive:
             admin_username = (input("Admin username: ") or "").strip()
-        if admin_password is None:
             admin_password = getpass("Admin password: ")
-        cursor.execute('SELECT "password" FROM users WHERE username = %s',
-            (admin_username,))
+        else:
+            admin_username = (admin_username or "").strip()
+            admin_password = admin_password or ""
+        if not admin_username or not admin_password:
+            return {"error": "Invalid admin credentials"}
+        cursor.execute(
+            'SELECT "password", is_admin FROM public.users WHERE username = %s',
+            (admin_username,)
+        )
         row = cursor.fetchone()
         if not row:
             return {"error": "Invalid admin credentials"}
@@ -38,23 +45,24 @@ def drop_table(
         except (exceptions.VerifyMismatchError, exceptions.VerificationError):
             return {"error": "Invalid admin credentials"}
 
-        if table_name is None:
+        if not bool(row[1]):
+            return {"error": "Admin required"}
+        if interactive:
             table_name = (input("Table to delete: ") or "").strip()
+        else:
+            table_name = (table_name or "").strip()
         if not table_name:
             return {"error": "Missing table_name"}
-        if confirm and interactive:
-            ans = (input(f"Delete table '{table_name}'? (y/n): ") or "").strip().lower()
-            if ans != "y":
-                return {"error": "Cancelled"}
-        drop_sql = sql.SQL(
-            "DROP TABLE IF EXISTS {}{};"
-        ).format(
+        if confirm:
+            if interactive:
+                ans = (input(f"Delete table '{table_name}'? (y/n): ") or "").strip().lower()
+                if ans != "y":
+                    return {"error": "Cancelled"}
+            else:
+                return {"error": "Confirmation required"}
+        drop_sql = sql.SQL("DROP TABLE IF EXISTS {}{};").format(
             sql.Identifier(table_name),
-            sql.SQL(
-                " CASCADE"
-            )
-            if cascade
-            else sql.SQL(""),
+            sql.SQL(" CASCADE") if cascade else sql.SQL(""),
         )
         cursor.execute(drop_sql)
         return {"ok": True, "dropped": table_name, "cascade": cascade}

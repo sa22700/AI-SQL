@@ -26,7 +26,10 @@ def delete_user(
             while True:
                 admin_username = (input("Admin username: ") or "").strip()
                 admin_password = getpass("Admin password: ")
-                cursor.execute('SELECT "password" FROM users WHERE username = %s', (admin_username,))
+                cursor.execute(
+                    'SELECT "password", is_admin FROM public.users WHERE username = %s',
+                    (admin_username,)
+                )
                 row = cursor.fetchone()
                 if not row:
                     retry = (input("Invalid admin credentials. Try again? (y/n): ") or "").strip().lower()
@@ -35,6 +38,11 @@ def delete_user(
                     continue
                 try:
                     ph.verify(row[0], admin_password)
+                    if not bool(row[1]):
+                        retry = (input("Admin required. Try again? (y/n): ") or "").strip().lower()
+                        if retry != "y":
+                            return {"error": "Cancelled"}
+                        continue
                     break
 
                 except (exceptions.VerifyMismatchError, exceptions.VerificationError):
@@ -45,18 +53,24 @@ def delete_user(
 
         else:
             admin_username = (admin_username or "").strip()
-            if not admin_username:
+            admin_password = admin_password or ""
+            if not admin_username or not admin_password:
                 return {"error": "Invalid admin credentials"}
-            cursor.execute('SELECT "password" FROM users WHERE username = %s', (admin_username,))
+            cursor.execute(
+                'SELECT "password", is_admin FROM public.users WHERE username = %s',
+                (admin_username,)
+            )
             row = cursor.fetchone()
             if not row:
                 return {"error": "Invalid admin credentials"}
             try:
-                ph.verify(row[0], admin_password or "")
+                ph.verify(row[0], admin_password)
 
             except (exceptions.VerifyMismatchError, exceptions.VerificationError):
                 return {"error": "Invalid admin credentials"}
 
+            if not bool(row[1]):
+                return {"error": "Admin required"}
         if interactive:
             while True:
                 username = (input("Username to delete: ") or "").strip()
@@ -72,7 +86,7 @@ def delete_user(
             confirm_answer = (input(f"Delete user '{username}'? (y/n): ") or "").strip().lower()
             if confirm_answer != "y":
                 return {"error": "Cancelled"}
-        cursor.execute("DELETE FROM users WHERE username = %s", (username,))
+        cursor.execute("DELETE FROM public.users WHERE username = %s", (username,))
         if cursor.rowcount == 0:
             return {"error": "User not found"}
         return {"ok": True, "deleted": username}

@@ -18,27 +18,34 @@ def update_part(
     conn = None
     cursor = None
     ph = PasswordHasher()
-    interactive = (
-        admin_username is None
-        or admin_password is None
-    )
+    interactive = (admin_username is None) or (admin_password is None)
     try:
         conn = connect()
         conn.autocommit = True
         cursor = conn.cursor()
-        if admin_username is None:
+        if interactive:
             admin_username = (input("Admin username: ") or "").strip()
-        if admin_password is None:
             admin_password = getpass("Admin password: ")
-        cursor.execute('SELECT "password" FROM users WHERE username = %s',
-            (admin_username,))
+        else:
+            admin_username = (admin_username or "").strip()
+            admin_password = admin_password or ""
+        if not admin_username or not admin_password:
+            return {"error": "Invalid admin credentials"}
+        cursor.execute(
+            'SELECT "password", is_admin FROM public.users WHERE username = %s',
+            (admin_username,)
+        )
         row = cursor.fetchone()
         if not row:
             return {"error": "Invalid admin credentials"}
         try:
             ph.verify(row[0], admin_password)
+
         except (exceptions.VerifyMismatchError, exceptions.VerificationError):
             return {"error": "Invalid admin credentials"}
+
+        if not bool(row[1]):
+            return {"error": "Admin required"}
         table_name = (table_name or "").strip()
         part_number = (part_number or "").strip()
         if not table_name:
@@ -77,15 +84,10 @@ def update_part(
                 return {"error": "Confirmation required"}
         params.append(part_number)
         update_sql = (
-            sql.SQL(
-                "UPDATE {} SET "
-            ).format(sql.Identifier(table_name))
-            + sql.SQL(
-            ", "
-        ).join(sets)
-            + sql.SQL(
-            " WHERE part_number = %s RETURNING *;"
-        ))
+            sql.SQL("UPDATE {} SET ").format(sql.Identifier(table_name))
+            + sql.SQL(", ").join(sets)
+            + sql.SQL(" WHERE part_number = %s RETURNING *;")
+        )
         cursor.execute(update_sql, tuple(params))
         row = cursor.fetchone()
         if not row:

@@ -15,20 +15,23 @@ def delete_part(
     conn = None
     cursor = None
     ph = PasswordHasher()
-    interactive = (
-        admin_username is None
-        or admin_password is None
-    )
+    interactive = (admin_username is None) or (admin_password is None)
     try:
         conn = connect()
         conn.autocommit = True
         cursor = conn.cursor()
-        if admin_username is None:
+        if interactive:
             admin_username = (input("Admin username: ") or "").strip()
-        if admin_password is None:
             admin_password = getpass("Admin password: ")
-        cursor.execute('SELECT "password" FROM users WHERE username = %s',
-            (admin_username,))
+        else:
+            admin_username = (admin_username or "").strip()
+            admin_password = admin_password or ""
+        if not admin_username or not admin_password:
+            return {"error": "Invalid admin credentials"}
+        cursor.execute(
+            'SELECT "password", is_admin FROM public.users WHERE username = %s',
+            (admin_username,)
+        )
         row = cursor.fetchone()
         if not row:
             return {"error": "Invalid admin credentials"}
@@ -38,6 +41,8 @@ def delete_part(
         except (exceptions.VerifyMismatchError, exceptions.VerificationError):
             return {"error": "Invalid admin credentials"}
 
+        if not bool(row[1]):
+            return {"error": "Admin required"}
         table_name = (table_name or "").strip()
         part_number = (part_number or "").strip()
         if not table_name:
@@ -53,10 +58,8 @@ def delete_part(
                     return {"error": "Cancelled"}
             else:
                 return {"error": "Confirmation required"}
-
-        del_sql = sql.SQL(
-            "DELETE FROM {} WHERE part_number = %s;"
-        ).format(sql.Identifier(table_name)
+        del_sql = sql.SQL("DELETE FROM {} WHERE part_number = %s;").format(
+            sql.Identifier(table_name)
         )
         cursor.execute(del_sql, (part_number,))
         if cursor.rowcount == 0:

@@ -28,7 +28,7 @@ def add_new_user(
             while True:
                 admin_username = input('Username: ').strip()
                 admin_password = getpass('Password: ')
-                cursor.execute('SELECT "password" FROM users WHERE username = %s', (admin_username,))
+                cursor.execute('SELECT "password", is_admin FROM users WHERE username = %s', (admin_username,))
                 row = cursor.fetchone()
                 if not row:
                     retry = input('Faulty username or password. Try again? (y/n): ').strip().lower()
@@ -37,6 +37,12 @@ def add_new_user(
                     continue
                 try:
                     ph.verify(row[0], admin_password)
+                    if not bool(row[1]):
+                        retry = input("Admin required. Try again? (y/n): ").strip().lower()
+                        if retry != "y":
+                            return {"error": "Cancelled"}
+                        continue
+
                     break
 
                 except (exceptions.VerifyMismatchError, exceptions.VerificationError):
@@ -45,12 +51,15 @@ def add_new_user(
                         return {"error": "Cancelled"}
                     continue
         else:
-            cursor.execute('SELECT "password" FROM users WHERE username = %s', (admin_username,))
+            cursor.execute('SELECT "password", is_admin FROM users WHERE username = %s', (admin_username,))
             row = cursor.fetchone()
             if not row:
                 return {"error": "Invalid admin credentials"}
             try:
                 ph.verify(row[0], admin_password)
+                if not bool(row[1]):
+                    log_error("Admin required")
+                    return {"error": "Admin required"}
 
             except (exceptions.VerifyMismatchError, exceptions.VerificationError):
                 log_error("Invalid admin credentials")

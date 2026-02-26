@@ -30,7 +30,7 @@ def database(
             while True:
                 admin_username = input("Username: ").strip()
                 admin_password = getpass("Password: ")
-                cursor.execute('SELECT "password" FROM users WHERE username = %s', (admin_username,))
+                cursor.execute('SELECT "password", is_admin FROM public.users WHERE username = %s', (admin_username,))
                 row = cursor.fetchone()
                 if not row:
                     retry = input("Faulty username or password. Try again? (y/n): ").strip().lower()
@@ -39,6 +39,11 @@ def database(
                     continue
                 try:
                     ph.verify(row[0], admin_password)
+                    if not bool(row[1]):
+                        retry = input("Admin required. Try again? (y/n): ").strip().lower()
+                        if retry != "y":
+                            return {"error": "Cancelled"}
+                        continue
                     break
 
                 except (exceptions.VerifyMismatchError, exceptions.VerificationError):
@@ -51,12 +56,14 @@ def database(
                 return {"error": "Missing username"}
             if not admin_password:
                 return {"error": "Missing password"}
-            cursor.execute('SELECT "password" FROM users WHERE username = %s', (admin_username,))
+            cursor.execute('SELECT "password", is_admin FROM public.users WHERE username = %s', (admin_username,))
             row = cursor.fetchone()
             if not row:
                 return {"error": "Invalid admin credentials"}
             try:
                 ph.verify(row[0], admin_password)
+                if not bool(row[1]):
+                    return {"error": "Admin required"}
 
             except (exceptions.VerifyMismatchError, exceptions.VerificationError):
                 return {"error": "Invalid admin credentials"}
@@ -92,7 +99,7 @@ def database(
                         break
         else:
             if create_table is None:
-                return {"error": "Missing create_table (true/false)"}
+                create_table = False
             if (create_table or rows_to or fetch) and (not table_name or not str(table_name).strip()):
                 return {"error": "Missing table_name"}
         created = False
