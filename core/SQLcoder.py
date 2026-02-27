@@ -24,7 +24,7 @@ def sql_driver(question: str | None = None):
 			else:
 				n_gpu_layers = 0
 			llm = Llama(model_path=os.getenv('LLM_MODEL'), use_mmap=False, n_gpu_layers=n_gpu_layers, n_ctx=4096)
-			with open(os.path.join(os.path.dirname(__file__), '../logs/schema.json')) as f:
+			with open(os.getenv('SCHEMA')) as f:
 				schema = json.load(f)
 			prompt = (
 				"ONLY return a pure SQL query that can be executed directly in PostgreSQL. "

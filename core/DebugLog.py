@@ -1,7 +1,7 @@
 import traceback
 import os
 
-LOG_FILE = os.path.join(os.path.dirname(__file__), "../logs/ErrorLog.log")
+LOG_FILE = os.getenv('ErrorLog')
 
 def log_error(error_message):
     with open(LOG_FILE, "a", encoding="utf-8") as log:
