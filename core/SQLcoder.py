@@ -13,7 +13,7 @@ def sql_driver(question: str | None = None):
 	old_stderr = sys.stderr
 	try:
 		conn = connect()
-		conn.autocommit = True
+		conn.set_session(readonly=True, autocommit=False)
 		cursor = conn.cursor()
 		try:
 			devnull = open(os.devnull, 'w')
