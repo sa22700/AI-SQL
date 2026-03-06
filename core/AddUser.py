@@ -10,7 +10,7 @@ def add_new_user(
         new_username: str | None = None,
         new_password: str | None = None,
         confirm_password: str | None = None
-    ):
+    ) -> dict:
     cursor = None
     conn = None
     ph = PasswordHasher()

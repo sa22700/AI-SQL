@@ -42,7 +42,7 @@ def cuda_available() -> float:
         print(f"VRAM-check failed: {e}")
         return 0.0
 
-def estimate_n_gpu_layers(vram_gb):
+def estimate_n_gpu_layers(vram_gb) -> int:
     if vram_gb <= 0:
         return 0
     elif vram_gb <= 4:

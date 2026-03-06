@@ -11,7 +11,7 @@ def drop_table(
     table_name: str | None = None,
     cascade: bool = False,
     confirm: bool = True,
-):
+) -> dict:
     conn = None
     cursor = None
     ph = PasswordHasher()

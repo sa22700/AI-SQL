@@ -13,7 +13,7 @@ def database(
     table_name: str | None = None,
     rows_to: list[tuple[str, str, str, float]] | None = None,
     fetch: bool = True
-):
+) -> dict:
     conn = None
     cursor = None
     ph = PasswordHasher()

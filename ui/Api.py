@@ -5,22 +5,22 @@ class ApiClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
 
-    async def _post(self, path: str, payload: dict, timeout: float | None = None):
+    async def _post(self, path: str, payload: dict, timeout: float | None = None) -> httpx.Response:
         t = self.timeout if timeout is None else timeout
         async with httpx.AsyncClient(timeout=t) as client:
             return await client.post(f"{self.base_url}{path}", json=payload)
 
-    async def login(self, username: str, password: str):
+    async def login(self, username: str, password: str) -> httpx.Response:
         return await self._post("/login", {"username": username, "password": password})
 
-    async def aisql(self, username: str, password: str, question: str):
+    async def aisql(self, username: str, password: str, question: str) -> httpx.Response:
         return await self._post("/aisql", {"username": username, "password": password, "question": question})
 
-    async def add_user(self, payload: dict):
+    async def add_user(self, payload: dict) -> httpx.Response:
         return await self._post("/add_user", payload)
 
-    async def delete_user(self, payload: dict):
+    async def delete_user(self, payload: dict) -> httpx.Response:
         return await self._post("/delete_user", payload)
 
-    async def database(self, payload: dict):
+    async def database(self, payload: dict) -> httpx.Response:
         return await self._post("/database", payload)

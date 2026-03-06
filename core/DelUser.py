@@ -8,7 +8,7 @@ def delete_user(
     admin_username: str | None = None,
     admin_password: str | None = None,
     username: str | None = None,
-):
+) -> dict:
     cursor = None
     conn = None
     ph = PasswordHasher()

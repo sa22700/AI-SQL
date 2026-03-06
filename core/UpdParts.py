@@ -14,7 +14,7 @@ def update_part(
     admin_username: str | None = None,
     admin_password: str | None = None,
     confirm: bool = True,
-):
+) -> dict:
     conn = None
     cursor = None
     ph = PasswordHasher()

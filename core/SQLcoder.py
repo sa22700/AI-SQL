@@ -6,7 +6,7 @@ import json
 from core.DebugLog import log_error
 from core.Connection import connect, cuda_available, estimate_n_gpu_layers
 
-def sql_driver(question: str | None = None):
+def sql_driver(question: str | None = None) -> dict:
 	conn = None
 	cursor = None
 	devnull = None

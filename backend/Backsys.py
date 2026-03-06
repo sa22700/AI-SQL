@@ -9,16 +9,16 @@ from backend.Depend import _verify_user, _verify_admin
 app = FastAPI()
 
 @app.get("/health")
-def health():
+def health() -> dict:
     return {"ok": True}
 
 @app.post("/login", response_model=LoginResponse)
-def login(req: LoginRequest):
+def login(req: LoginRequest) -> dict:
     _verify_user(req.username, req.password)
     return {"ok": True, "username": req.username}
 
 @app.post("/aisql", response_model=AskResponse)
-def aisql(req: AskRequest):
+def aisql(req: AskRequest) -> dict:
     _verify_user(req.username, req.password)
     out = sql_driver(question=req.question)
     if "error" in out:
@@ -26,7 +26,7 @@ def aisql(req: AskRequest):
     return out
 
 @app.post("/add_user", response_model=AddUserResponse)
-def add_user(req: AddUserRequest):
+def add_user(req: AddUserRequest) -> dict:
     _verify_admin(req.username, req.password)
     out = add_new_user(
         admin_username=req.username,
@@ -40,7 +40,7 @@ def add_user(req: AddUserRequest):
     raise HTTPException(status_code=400, detail=out.get("error", "User creation failed"))
 
 @app.post("/delete_user", response_model=DeleteUserResponse)
-def delete_user(req: DeleteUserRequest):
+def delete_user(req: DeleteUserRequest) -> dict:
     _verify_admin(req.username, req.password)
     if req.username_to_delete == req.username:
         raise HTTPException(status_code=400, detail="Admin cannot delete itself")
@@ -53,7 +53,7 @@ def delete_user(req: DeleteUserRequest):
     return {"ok": True, "deleted": req.username_to_delete, "error": None}
 
 @app.post("/database", response_model=DatabaseResponse)
-def database_endpoint(req: DatabaseRequest):
+def database_endpoint(req: DatabaseRequest) -> dict:
     _verify_admin(req.username, req.password)
     out = database(
         admin_username=req.username,

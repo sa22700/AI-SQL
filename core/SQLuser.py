@@ -10,7 +10,7 @@ def ask_user(
         booth_username: str | None = None,
         booth_password: str | None = None,
         booth_confirm: str | None = None
-):
+) -> dict:
     conn = None
     cursor = None
     ph = PasswordHasher()
