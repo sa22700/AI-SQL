@@ -1,12 +1,12 @@
 import flet as ft
 
-def show_delete(page: ft.Page, state, api, go):
+def show_delete(page: ft.Page, state, api, go) -> None:
     page.clean()
     username_del_tf = ft.TextField(label="Username to delete", width=400)
     confirm_cb = ft.Checkbox(label="I confirm delete", value=False)
     status_txt = ft.Text("")
 
-    async def do_delete_click(e):
+    async def do_delete_click(e) -> None:
         user = (username_del_tf.value or "").strip()
         if not user:
             status_txt.value = "Username missing"
@@ -43,7 +43,7 @@ def show_delete(page: ft.Page, state, api, go):
             status_txt.value = f"Request failed: {ex}"
             page.update()
 
-    async def back_click(e):
+    async def back_click(e) -> None:
         go("main menu")
 
     page.add(

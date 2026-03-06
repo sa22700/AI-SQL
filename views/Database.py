@@ -1,7 +1,7 @@
 import flet as ft
 import json
 
-def show_database(page: ft.Page, state, api, go):
+def show_database(page: ft.Page, state, api, go) -> None:
     page.clean()
     table_tf = ft.TextField(label="Table name", width=400)
     create_cb = ft.Checkbox(label="Create table", value=True)
@@ -16,7 +16,7 @@ def show_database(page: ft.Page, state, api, go):
     status_txt = ft.Text("")
     result_tf = ft.TextField(label="Result", multiline=True, read_only=True, width=700, min_lines=10)
 
-    async def run_db_click(e):
+    async def run_db_click(e) -> None:
         table_name = (table_tf.value or "").strip()
         if not table_name:
             status_txt.value = "Table name missing"
@@ -78,7 +78,7 @@ def show_database(page: ft.Page, state, api, go):
             status_txt.value = f"Request failed: {ex}"
             page.update()
 
-    async def back_click(e):
+    async def back_click(e) -> None:
         go("main menu")
 
     page.add(

@@ -1,13 +1,13 @@
 import flet as ft
 
-def show_register(page: ft.Page, state, api, go):
+def show_register(page: ft.Page, state, api, go) -> None:
     page.clean()
     new_user_tf = ft.TextField(label="New username", width=400)
     new_pass_tf = ft.TextField(label="New password", password=True, can_reveal_password=True, width=400)
     confirm_tf = ft.TextField(label="Confirm password", password=True, can_reveal_password=True, width=400)
     status_txt = ft.Text("")
 
-    async def create_user_click(e):
+    async def create_user_click(e) -> None:
         if not new_user_tf.value or not new_pass_tf.value or not confirm_tf.value:
             status_txt.value = "Missing fields"
             page.update()
@@ -40,7 +40,7 @@ def show_register(page: ft.Page, state, api, go):
             status_txt.value = f"Request failed: {ex}"
             page.update()
 
-    async def back_click(e):
+    async def back_click(e) -> None:
         go("main menu")
 
     page.add(

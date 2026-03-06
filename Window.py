@@ -14,7 +14,7 @@ from views.Update import show_update_part
 
 API_BASE = os.getenv("API_BASE")
 
-def main(page: ft.Page):
+def main(page: ft.Page) -> None:
     page.title = "AI-SQL"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER

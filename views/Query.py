@@ -1,13 +1,13 @@
 import flet as ft
 from ui.Utils import clean_rows
 
-def show_query(page: ft.Page, state, api, go):
+def show_query(page: ft.Page, state, api, go) -> None:
     page.clean()
     question_tf = ft.TextField(label="Question", multiline=True, min_lines=3, max_lines=6, width=600)
     status_txt = ft.Text("")
     result_tf = ft.Text("")
 
-    async def run_click(e):
+    async def run_click(e) -> None:
         if not question_tf.value:
             status_txt.value = "Question is missing"
             page.update()
@@ -32,15 +32,15 @@ def show_query(page: ft.Page, state, api, go):
             status_txt.value = f"Request failed: {ex}"
             page.update()
 
-    async def logout_click(e):
+    async def logout_click(e) -> None:
         state.username = ""
         state.password = ""
         go("login")
 
-    async def exit_click(e):
+    async def exit_click(e) -> None:
         await page.window.destroy()
 
-    async def back_click(e):
+    async def back_click(e) -> None:
         go("main menu")
 
     page.add(

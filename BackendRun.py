@@ -1,7 +1,7 @@
 import os
 import uvicorn
 
-def main():
+def main() -> None:
     app = os.environ['UVICORN_APP']
     host = os.environ['UVICORN_HOST']
     port = int(os.environ['UVICORN_PORT'])

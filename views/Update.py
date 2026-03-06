@@ -1,6 +1,6 @@
 import flet as ft
 
-def show_update_part(page: ft.Page, state, api, go):
+def show_update_part(page: ft.Page, state, api, go) -> None:
     page.clean()
     table_tf = ft.TextField(label="Table name", width=400)
     partnum_tf = ft.TextField(label="Part number", width=400)
@@ -10,7 +10,7 @@ def show_update_part(page: ft.Page, state, api, go):
     confirm_cb = ft.Checkbox(label="I confirm update", value=False)
     status_txt = ft.Text("")
 
-    async def do_update_click(e):
+    async def do_update_click(e) -> None:
         table_name = (table_tf.value or "").strip()
         part_number = (partnum_tf.value or "").strip()
         if not table_name:
@@ -72,7 +72,7 @@ def show_update_part(page: ft.Page, state, api, go):
             status_txt.value = f"Request failed: {ex}"
             page.update()
 
-    async def back_click(e):
+    async def back_click(e) -> None:
         go("main menu")
 
     page.add(

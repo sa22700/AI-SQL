@@ -8,7 +8,7 @@ from core.DelTable import drop_table
 from core.DelParts import delete_part
 from core.UpdParts import update_part
 
-def main_menu():
+def main_menu() -> None:
     while True:
         print("\n--- Main Menu ---")
         print("1. Run SQL AI (SQLcoder)")
@@ -45,7 +45,7 @@ def main_menu():
         else:
             print("Invalid choice.")
 
-def start():
+def start() -> None:
     try:
         auth = ask_user()
         if isinstance(auth, dict):

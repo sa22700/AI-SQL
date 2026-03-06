@@ -1,20 +1,19 @@
 import flet as ft
 
-def show_page(page: ft.Page, state, api, go):
+def show_page(page: ft.Page, state, api, go) -> None:
     page.clean()
-
     status_txt = ft.Text("")
 
-    async def logout_click(e):
+    async def logout_click(e) -> None:
         state.username = ""
         state.password = ""
         go("login")
 
-    async def exit_click(e):
+    async def exit_click(e) -> None:
         await page.window.destroy()
 
     def nav(route: str):
-        async def _handler(e):
+        async def _handler(e) -> None:
             go(route)
         return _handler
 
