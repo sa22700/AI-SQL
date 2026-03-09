@@ -54,26 +54,28 @@ def schema_tables(table_name: str, columns: list, filepath: str = SCHEMA_PATH, i
         print(f"Schema for table {table_name} saved.")
     return {'ok': True, 'action': 'created', 'table': table_name}
 
-def column_builder() -> dict:
-    return {
-        "table": "",
-        "columns": [
-            {"name": "id",
-             "type": "SERIAL",
-             "primary_key": True
-             },
-            {"name": "part_name",
-             "type": "TEXT"
-             },
-            {"name": "part_number",
-             "type": "TEXT",
-             "unique": True
-             },
-            {"name": "category",
-             "type": "TEXT"
-             },
-            {"name": "price",
-             "type": "DOUBLE PRECISION"
-             }
-        ]
-    }
+def column_builder() -> list:
+    return [
+        {
+            "name": "id",
+            "type": "SERIAL",
+            "primary_key": True
+        },
+        {
+            "name": "part_name",
+            "type": "TEXT"
+        },
+        {
+            "name": "part_number",
+            "type": "TEXT",
+            "unique": True
+        },
+        {
+            "name": "category",
+            "type": "TEXT"
+        },
+        {
+            "name": "price",
+            "type": "DOUBLE PRECISION"
+        }
+    ]
