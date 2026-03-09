@@ -7,6 +7,8 @@ from core.DelUser import delete_user
 from core.DelTable import drop_table
 from core.DelParts import delete_part
 from core.UpdParts import update_part
+from ui.Utils import clean_rows
+
 
 def main_menu() -> None:
     while True:
@@ -17,7 +19,7 @@ def main_menu() -> None:
         print("4. Delete user (admin only)")
         print("5. Delete table (admin only)")
         print("6. Delete parts (admin only)")
-        print("7. Update parts (admin only")
+        print("7. Update parts (admin only)")
         print("0. Logout / Exit")
         while True:
             try:
@@ -26,7 +28,9 @@ def main_menu() -> None:
             except ValueError:
                 print("Invalid choice. Please enter a number.")
         if choice == 1:
-            sql_driver()
+            result = sql_driver()
+            print(clean_rows(result.get("sql", "")))
+            print(clean_rows(result.get("rows", "")))
         elif choice == 2:
             database()
         elif choice == 3:

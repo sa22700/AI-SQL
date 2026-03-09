@@ -13,8 +13,8 @@ def show_register(page: ft.Page, state, api, go) -> None:
             page.update()
             return
         payload = {
-            "admin_username": state.username,
-            "admin_password": state.password,
+            "username": state.username,
+            "password": state.password,
             "new_username": new_user_tf.value,
             "new_password": new_pass_tf.value,
             "confirm_password": confirm_tf.value

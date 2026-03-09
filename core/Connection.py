@@ -3,20 +3,29 @@ import shutil
 import psycopg2
 import subprocess
 
-def connect():
+def connect_read():
     return psycopg2.connect(
         host=os.environ['DB_HOST'],
-        user=os.environ['DB_USER'],
-        password=os.environ['DB_PASS'],
+        user=os.environ['DB_READ_USER'],
+        password=os.environ['DB_READ_PASS'],
         port=os.environ['DB_PORT'],
         database=os.environ['DB_NAME']
+    )
+
+def connect_write():
+    return psycopg2.connect(
+        host=os.environ["DB_HOST"],
+        user=os.environ["DB_WRITE_USER"],
+        password=os.environ["DB_WRITE_PASS"],
+        port=os.environ["DB_PORT"],
+        database=os.environ["DB_NAME"]
     )
 
 def cuda_available() -> float:
     try:
         nvidia_smi = shutil.which("nvidia-smi")
         if not nvidia_smi:
-            return 0.0
+            return 0
         result = subprocess.run(
             [nvidia_smi, "--query-gpu=memory.total", "--format=csv,noheader,nounits"],
             check=True,
@@ -35,8 +44,8 @@ def cuda_available() -> float:
                 continue
 
         if not values:
-            return 0.0
-        return max(values) / 1024.0
+            return 0
+        return max(values) / 1024
 
     except Exception as e:
         print(f"VRAM-check failed: {e}")

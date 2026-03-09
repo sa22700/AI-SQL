@@ -57,7 +57,7 @@ def show_update_part(page: ft.Page, state, api, go) -> None:
         status_txt.value = "Updating..."
         page.update()
         try:
-            loader = await api.update_part(payload)  # tee tämä metodi backend-clientiin
+            loader = await api.update_part(payload)
             data = loader.json() if loader is not None else {}
             if not (200 <= loader.status_code < 300) or data.get("error"):
                 detail = data.get("detail") or data.get("error") or getattr(loader, "text", "Unknown error")

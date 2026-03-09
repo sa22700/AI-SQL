@@ -1,8 +1,7 @@
 import psycopg2
-from argon2 import PasswordHasher, exceptions
 from core.DebugLog import log_error
-from core.Connection import connect
-from getpass import getpass
+from core.SQLuser import ask_user
+from core.Connection import connect_write
 
 def delete_user(
     admin_username: str | None = None,
@@ -11,66 +10,27 @@ def delete_user(
 ) -> dict:
     cursor = None
     conn = None
-    ph = PasswordHasher()
     interactive = (
         admin_username is None
         or admin_password is None
         or username is None
     )
     try:
-        conn = connect()
-        conn.autocommit = True
-        cursor = conn.cursor()
         if interactive:
-            print("Login into admin account!")
-            while True:
-                admin_username = (input("Admin username: ") or "").strip()
-                admin_password = getpass("Admin password: ")
-                cursor.execute(
-                    'SELECT "password", is_admin FROM public.users WHERE username = %s',
-                    (admin_username,)
-                )
-                row = cursor.fetchone()
-                if not row:
-                    retry = (input("Invalid admin credentials. Try again? (y/n): ") or "").strip().lower()
-                    if retry != "y":
-                        return {"error": "Cancelled"}
-                    continue
-                try:
-                    ph.verify(row[0], admin_password)
-                    if not bool(row[1]):
-                        retry = (input("Admin required. Try again? (y/n): ") or "").strip().lower()
-                        if retry != "y":
-                            return {"error": "Cancelled"}
-                        continue
-                    break
-
-                except (exceptions.VerifyMismatchError, exceptions.VerificationError):
-                    retry = (input("Invalid admin credentials. Try again? (y/n): ") or "").strip().lower()
-                    if retry != "y":
-                        return {"error": "Cancelled"}
-                    continue
-
+            auth = ask_user()
         else:
             admin_username = (admin_username or "").strip()
             admin_password = admin_password or ""
             if not admin_username or not admin_password:
                 return {"error": "Invalid admin credentials"}
-            cursor.execute(
-                'SELECT "password", is_admin FROM public.users WHERE username = %s',
-                (admin_username,)
-            )
-            row = cursor.fetchone()
-            if not row:
-                return {"error": "Invalid admin credentials"}
-            try:
-                ph.verify(row[0], admin_password)
-
-            except (exceptions.VerifyMismatchError, exceptions.VerificationError):
-                return {"error": "Invalid admin credentials"}
-
-            if not bool(row[1]):
-                return {"error": "Admin required"}
+            auth = ask_user(username=admin_username, password=admin_password)
+        if not auth.get("ok"):
+            return {"error": auth.get("error", "Login failed")}
+        if not auth.get("user", {}).get("is_admin"):
+            return {"error": "Admin required"}
+        conn = connect_write()
+        conn.autocommit = True
+        cursor = conn.cursor()
         if interactive:
             while True:
                 username = (input("Username to delete: ") or "").strip()
@@ -80,7 +40,7 @@ def delete_user(
             username = (username or "").strip()
             if not username:
                 return {"error": "Username cannot be empty"}
-        if username == admin_username:
+        if username == auth.get("username"):
             return {"error": "Admin cannot delete itself"}
         if interactive:
             confirm_answer = (input(f"Delete user '{username}'? (y/n): ") or "").strip().lower()

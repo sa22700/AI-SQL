@@ -2,9 +2,8 @@ import psycopg2
 from psycopg2 import sql
 from core.SchemaBuilder import schema_tables, column_builder
 from core.DebugLog import log_error
-from core.Connection import connect
-from argon2 import PasswordHasher, exceptions
-from getpass import getpass
+from core.Connection import connect_write
+from core.SQLuser import ask_user
 
 def database(
     admin_username: str | None = None,
@@ -16,58 +15,27 @@ def database(
 ) -> dict:
     conn = None
     cursor = None
-    ph = PasswordHasher()
     interactive = (
         admin_username is None and admin_password is None and
         create_table is None and table_name is None and
         rows_to is None
     )
     try:
-        conn = connect()
-        conn.autocommit = True
-        cursor = conn.cursor()
         if interactive:
-            while True:
-                admin_username = input("Username: ").strip()
-                admin_password = getpass("Password: ")
-                cursor.execute('SELECT "password", is_admin FROM public.users WHERE username = %s', (admin_username,))
-                row = cursor.fetchone()
-                if not row:
-                    retry = input("Faulty username or password. Try again? (y/n): ").strip().lower()
-                    if retry != "y":
-                        return {"error": "Cancelled"}
-                    continue
-                try:
-                    ph.verify(row[0], admin_password)
-                    if not bool(row[1]):
-                        retry = input("Admin required. Try again? (y/n): ").strip().lower()
-                        if retry != "y":
-                            return {"error": "Cancelled"}
-                        continue
-                    break
-
-                except (exceptions.VerifyMismatchError, exceptions.VerificationError):
-                    retry = input("Faulty username or password. Try again? (y/n): ").strip().lower()
-                    if retry != "y":
-                        return {"error": "Cancelled"}
-
+            auth = ask_user()
         else:
             if not admin_username or not str(admin_username).strip():
                 return {"error": "Missing username"}
             if not admin_password:
                 return {"error": "Missing password"}
-            cursor.execute('SELECT "password", is_admin FROM public.users WHERE username = %s', (admin_username,))
-            row = cursor.fetchone()
-            if not row:
-                return {"error": "Invalid admin credentials"}
-            try:
-                ph.verify(row[0], admin_password)
-                if not bool(row[1]):
-                    return {"error": "Admin required"}
-
-            except (exceptions.VerifyMismatchError, exceptions.VerificationError):
-                return {"error": "Invalid admin credentials"}
-
+            auth = ask_user(username=admin_username, password=admin_password)
+        if not auth.get("ok"):
+            return {"error": auth.get("error", "Login failed")}
+        if not auth.get("user", {}).get("is_admin"):
+            return {"error": "Admin required"}
+        conn = connect_write()
+        conn.autocommit = True
+        cursor = conn.cursor()
         if interactive:
             ans = input("Create table? (y/n): ").strip().lower()
             create_table = (ans == "y")

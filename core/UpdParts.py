@@ -1,9 +1,8 @@
 import psycopg2
 from psycopg2 import sql
-from argon2 import PasswordHasher, exceptions
-from getpass import getpass
-from core.Connection import connect
+from core.SQLuser import ask_user
 from core.DebugLog import log_error
+from core.Connection import connect_write
 
 def update_part(
     table_name: str,
@@ -17,35 +16,26 @@ def update_part(
 ) -> dict:
     conn = None
     cursor = None
-    ph = PasswordHasher()
-    interactive = (admin_username is None) or (admin_password is None)
+    interactive = (
+            admin_username is None
+            or admin_password is None
+    )
     try:
-        conn = connect()
-        conn.autocommit = True
-        cursor = conn.cursor()
         if interactive:
-            admin_username = (input("Admin username: ") or "").strip()
-            admin_password = getpass("Admin password: ")
+            auth = ask_user()
         else:
             admin_username = (admin_username or "").strip()
             admin_password = admin_password or ""
-        if not admin_username or not admin_password:
-            return {"error": "Invalid admin credentials"}
-        cursor.execute(
-            'SELECT "password", is_admin FROM public.users WHERE username = %s',
-            (admin_username,)
-        )
-        row = cursor.fetchone()
-        if not row:
-            return {"error": "Invalid admin credentials"}
-        try:
-            ph.verify(row[0], admin_password)
-
-        except (exceptions.VerifyMismatchError, exceptions.VerificationError):
-            return {"error": "Invalid admin credentials"}
-
-        if not bool(row[1]):
+            if not admin_username or not admin_password:
+                return {"error": "Invalid admin credentials"}
+            auth = ask_user(username=admin_username, password=admin_password)
+        if not auth.get("ok"):
+            return {"error": auth.get("error", "Login failed")}
+        if not auth.get("user", {}).get("is_admin"):
             return {"error": "Admin required"}
+        conn = connect_write()
+        conn.autocommit = True
+        cursor = conn.cursor()
         table_name = (table_name or "").strip()
         part_number = (part_number or "").strip()
         if not table_name:
@@ -68,7 +58,6 @@ def update_part(
 
             except (TypeError, ValueError):
                 return {"error": "Invalid price"}
-
             sets.append(sql.SQL("price = %s"))
             params.append(price)
         if not sets:

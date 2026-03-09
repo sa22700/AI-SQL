@@ -49,8 +49,8 @@ def show_database(page: ft.Page, state, api, go) -> None:
                 }
             )
         payload = {
-            "admin_username": state.username,
-            "admin_password": state.password,
+            "username": state.username,
+            "password": state.password,
             "create_table": bool(create_cb.value),
             "table_name": table_name,
             "rows": rows,
