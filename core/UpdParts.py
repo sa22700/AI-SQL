@@ -58,6 +58,7 @@ def update_part(
 
             except (TypeError, ValueError):
                 return {"error": "Invalid price"}
+
             sets.append(sql.SQL("price = %s"))
             params.append(price)
         if not sets:

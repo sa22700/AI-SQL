@@ -41,7 +41,12 @@ def schema_builder(schema_data: list, filepath: str = SCHEMA_PATH ) -> dict:
 
 def schema_tables(table_name: str, columns: list, filepath: str = SCHEMA_PATH, interactive: bool = False) -> dict:
     schema = schema_reader(filepath)
-    exist = any((entry.get("table") == table_name) for entry in schema if isinstance(entry, dict))
+    exist = False
+    for entry in schema:
+        if isinstance(entry, dict):
+            if entry.get("table") == table_name:
+                exist = True
+                break
     if exist:
         if interactive:
             print(f"Table '{table_name}' already exists in schema.")

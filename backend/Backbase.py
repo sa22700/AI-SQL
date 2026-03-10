@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class LoginRequest(BaseModel):
     username: str
@@ -26,7 +26,6 @@ class AddUserResponse(BaseModel):
     username: str | None = None
     error: str | None = None
 
-
 class DeleteUserRequest(LoginRequest):
     username_to_delete: str
 
@@ -44,7 +43,7 @@ class DbRow(BaseModel):
 class DatabaseRequest(LoginRequest):
     create_table: bool
     table_name: str
-    rows: list[DbRow] = []
+    rows: list[DbRow] = Field(default_factory=list)
     fetch: bool = True
 
 class DatabaseResponse(BaseModel):
@@ -54,4 +53,33 @@ class DatabaseResponse(BaseModel):
     inserted: int | None = None
     columns: list[str] | None = None
     rows: list[list] | None = None
+    error: str | None = None
+
+class DeleteTableRequest(LoginRequest):
+    table_to_delete: str
+
+class DeleteTableResponse(BaseModel):
+    ok: bool
+    deleted: str | None = None
+    error: str | None = None
+
+class DeletePartRequest(LoginRequest):
+    table_name: str
+    part_to_delete: str
+
+class DeletePartResponse(BaseModel):
+    ok: bool
+    deleted: str | None = None
+    error: str | None = None
+
+class UpdatePartRequest(LoginRequest):
+    table_name: str
+    target_part_number: str
+    new_part_name: str
+    new_category: str
+    new_price: float
+
+class UpdatePartResponse(BaseModel):
+    ok: bool
+    updated: str | None = None
     error: str | None = None
