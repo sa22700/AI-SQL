@@ -23,11 +23,10 @@ def show_delete_part(page: ft.Page, state, api, go) -> None:
             page.update()
             return
         payload = {
-            "admin_username": state.username,
-            "admin_password": state.password,
+            "username": state.username,
+            "password": state.password,
             "table_name": table_name,
-            "part_number": part_number,
-            "confirm": False
+            "part_to_delete": part_number,
         }
         status_txt.value = "Deleting..."
         page.update()

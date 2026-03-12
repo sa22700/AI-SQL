@@ -10,6 +10,11 @@ class ApiClient:
         async with httpx.AsyncClient(timeout=t) as client:
             return await client.post(f"{self.base_url}{path}", json=payload)
 
+    async def _put(self, path: str, payload: dict, timeout: float | None = None) -> httpx.Response:
+        t = self.timeout if timeout is None else timeout
+        async with httpx.AsyncClient(timeout=t) as client:
+            return await client.put(f"{self.base_url}{path}", json=payload)
+
     async def login(self, username: str, password: str) -> httpx.Response:
         return await self._post("/login", {"username": username, "password": password})
 
@@ -24,3 +29,12 @@ class ApiClient:
 
     async def database(self, payload: dict) -> httpx.Response:
         return await self._post("/database", payload)
+
+    async def delete_part(self, payload: dict) -> httpx.Response:
+        return await self._post("/delete_part", payload)
+
+    async def update_part(self, payload: dict) -> httpx.Response:
+        return await self._put("/update_part", payload)
+
+    async def delete_table(self, payload: dict) -> httpx.Response:
+        return await self._post("/delete_table", payload)

@@ -5,8 +5,8 @@ from core.SQLuser import ask_user
 from core.Connection import connect_write
 
 def delete_part(
-    table_name: str,
-    part_number: str,
+    table_name: str | None = None,
+    part_number: str | None = None,
     admin_username: str | None = None,
     admin_password: str | None = None,
     confirm: bool = True
@@ -14,8 +14,8 @@ def delete_part(
     conn = None
     cursor = None
     interactive = (
-            admin_username is None
-            or admin_password is None
+        admin_username is None
+        or admin_password is None
     )
     try:
         if interactive:
@@ -30,15 +30,25 @@ def delete_part(
             return {"error": auth.get("error", "Login failed")}
         if not auth.get("user", {}).get("is_admin"):
             return {"error": "Admin required"}
-        conn = connect_write()
-        conn.autocommit = True
-        cursor = conn.cursor()
-        table_name = (table_name or "").strip()
-        part_number = (part_number or "").strip()
+        if interactive:
+            if table_name is None:
+                table_name = input("Table name: ").strip()
+            else:
+                table_name = table_name.strip()
+            if part_number is None:
+                part_number = input("Part number to delete: ").strip()
+            else:
+                part_number = part_number.strip()
+        else:
+            table_name = (table_name or "").strip()
+            part_number = (part_number or "").strip()
         if not table_name:
             return {"error": "Missing table_name"}
         if not part_number:
             return {"error": "Missing part_number"}
+        conn = connect_write()
+        conn.autocommit = True
+        cursor = conn.cursor()
         if confirm:
             if interactive:
                 ans = (input(

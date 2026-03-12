@@ -17,16 +17,14 @@ def show_delete_table(page: ft.Page, state, api, go) -> None:
             page.update()
             return
         payload = {
-            "admin_username": state.username,
-            "admin_password": state.password,
-            "table_name": table_name,
-            "cascade": False,
-            "confirm": False,
+            "username": state.username,
+            "password": state.password,
+            "table_to_delete": table_name,
         }
         status_txt.value = "Deleting..."
         page.update()
         try:
-            loader = await api.drop_table(payload)
+            loader = await api.delete_table(payload)
             data = loader.json() if loader is not None else {}
             if not (200 <= loader.status_code < 300) or data.get("error"):
                 detail = data.get("detail") or data.get("error") or getattr(loader, "text", "Unknown error")

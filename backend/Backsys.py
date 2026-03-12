@@ -11,13 +11,12 @@ from backend.Backbase import (
 )
 from core.SQLcoder import sql_driver
 from core.AddUser import add_new_user
-from core.Connection import connect
 from core.SQLcreate import database
-from core.DeleteUser import delete_user as delete_user_core
-from core.DropTable import drop_table
-from core.DeletePart import delete_part as delete_part_core
-from core.UpdatePart import update_part
-from backend.Depend import _verify_user, _verify_admin
+from core.DelUser import delete_user
+from core.DelTable import drop_table
+from core.DelParts import delete_part
+from core.UpdParts import update_part
+from backend.Depend import verify_user, verify_admin
 
 app = FastAPI()
 
@@ -27,12 +26,12 @@ def health() -> dict:
 
 @app.post("/login", response_model=LoginResponse)
 def login(req: LoginRequest) -> dict:
-    _verify_user(req.username, req.password)
+    verify_user(req.username, req.password)
     return {"ok": True, "username": req.username, "error": None}
 
 @app.post("/aisql", response_model=AskResponse)
 def aisql(req: AskRequest) -> dict:
-    _verify_user(req.username, req.password)
+    verify_user(req.username, req.password)
     out = sql_driver(question=req.question)
     if "error" in out:
         raise HTTPException(status_code=400, detail=out["error"])
@@ -40,7 +39,7 @@ def aisql(req: AskRequest) -> dict:
 
 @app.post("/add_user", response_model=AddUserResponse)
 def add_user(req: AddUserRequest) -> dict:
-    _verify_admin(req.username, req.password)
+    verify_admin(req.username, req.password)
     out = add_new_user(
         admin_username=req.username,
         admin_password=req.password,
@@ -54,8 +53,8 @@ def add_user(req: AddUserRequest) -> dict:
 
 @app.post("/delete_user", response_model=DeleteUserResponse)
 def delete_user_endpoint(req: DeleteUserRequest) -> dict:
-    _verify_admin(req.username, req.password)
-    out = delete_user_core(
+    verify_admin(req.username, req.password)
+    out = delete_user(
         admin_username=req.username,
         admin_password=req.password,
         username=req.username_to_delete,
@@ -68,7 +67,7 @@ def delete_user_endpoint(req: DeleteUserRequest) -> dict:
 
 @app.post("/database", response_model=DatabaseResponse)
 def database_endpoint(req: DatabaseRequest) -> dict:
-    _verify_admin(req.username, req.password)
+    verify_admin(req.username, req.password)
     out = database(
         admin_username=req.username,
         admin_password=req.password,
@@ -83,7 +82,7 @@ def database_endpoint(req: DatabaseRequest) -> dict:
 
 @app.post("/delete_table", response_model=DeleteTableResponse)
 def delete_table_endpoint(req: DeleteTableRequest) -> dict:
-    _verify_admin(req.username, req.password)
+    verify_admin(req.username, req.password)
     out = drop_table(
         admin_username=req.username,
         admin_password=req.password,
@@ -93,12 +92,12 @@ def delete_table_endpoint(req: DeleteTableRequest) -> dict:
     )
     if out.get("error"):
         raise HTTPException(status_code=400, detail=out["error"])
-    return {"ok": True, "deleted": out.get("dropped"), "error": None}
+    return {"ok": True, "deleted": out.get("deleted"), "error": None}
 
 @app.post("/delete_part", response_model=DeletePartResponse)
 def delete_part_endpoint(req: DeletePartRequest) -> dict:
-    _verify_admin(req.username, req.password)
-    out = delete_part_core(
+    verify_admin(req.username, req.password)
+    out = delete_part(
         table_name=req.table_name,
         part_number=req.part_to_delete,
         admin_username=req.username,
@@ -113,7 +112,7 @@ def delete_part_endpoint(req: DeletePartRequest) -> dict:
 
 @app.put("/update_part", response_model=UpdatePartResponse)
 def update_part_endpoint(req: UpdatePartRequest) -> dict:
-    _verify_admin(req.username, req.password)
+    verify_admin(req.username, req.password)
     out = update_part(
         table_name=req.table_name,
         part_number=req.target_part_number,

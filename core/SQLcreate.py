@@ -39,22 +39,38 @@ def database(
         if interactive:
             ans = input("Create table? (y/n): ").strip().lower()
             create_table = (ans == "y")
-            if not create_table:
-                return {"ok": True, "skipped": "create_table"}
             while True:
-                table_name = input("Type new table name: ").strip()
+                if create_table:
+                    table_name = input("Type new table name: ").strip()
+                else:
+                    table_name = input("Type existing table name: ").strip()
                 if not table_name:
                     print("Table name cannot be empty.")
                     continue
                 break
+            if not create_table:
+                cursor.execute(
+                    """
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM information_schema.tables
+                        WHERE table_schema = 'public'
+                        AND table_name = %s
+                    )
+                    """,
+                    (table_name,)
+                )
+                exists = cursor.fetchone()[0]
+                if not exists:
+                    return {"error": f"Table '{table_name}' does not exist"}
             add_data = input("Add data? (y/n): ").strip().lower()
             if add_data == "y":
                 rows_to = []
                 while True:
                     try:
-                        part = input("Part name: ")
-                        number = input("Part number: ")
-                        category = input("Category: ")
+                        part = input("Part name: ").strip()
+                        number = input("Part number: ").strip()
+                        category = input("Category: ").strip()
                         price = float(input("Price: "))
                         rows_to.append((part, number, category, price))
 
@@ -70,6 +86,21 @@ def database(
                 create_table = False
             if (create_table or rows_to or fetch) and (not table_name or not str(table_name).strip()):
                 return {"error": "Missing table_name"}
+            if not create_table and table_name:
+                cursor.execute(
+                    """
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM information_schema.tables
+                        WHERE table_schema = 'public'
+                        AND table_name = %s
+                    )
+                    """,
+                    (table_name,)
+                )
+                exists = cursor.fetchone()[0]
+                if not exists:
+                    return {"error": f"Table '{table_name}' does not exist"}
         created = False
         if create_table:
             create_sql = sql.SQL(

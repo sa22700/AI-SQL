@@ -75,9 +75,9 @@ class DeletePartResponse(BaseModel):
 class UpdatePartRequest(LoginRequest):
     table_name: str
     target_part_number: str
-    new_part_name: str
-    new_category: str
-    new_price: float
+    new_part_name: str | None = None
+    new_category: str | None = None
+    new_price: float | None = None
 
 class UpdatePartResponse(BaseModel):
     ok: bool

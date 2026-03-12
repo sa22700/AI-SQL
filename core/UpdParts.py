@@ -5,8 +5,8 @@ from core.DebugLog import log_error
 from core.Connection import connect_write
 
 def update_part(
-    table_name: str,
-    part_number: str,
+    table_name: str | None = None,
+    part_number: str | None = None,
     part_name: str | None = None,
     category: str | None = None,
     price: float | None = None,
@@ -17,8 +17,8 @@ def update_part(
     conn = None
     cursor = None
     interactive = (
-            admin_username is None
-            or admin_password is None
+        admin_username is None
+        or admin_password is None
     )
     try:
         if interactive:
@@ -33,23 +33,52 @@ def update_part(
             return {"error": auth.get("error", "Login failed")}
         if not auth.get("user", {}).get("is_admin"):
             return {"error": "Admin required"}
-        conn = connect_write()
-        conn.autocommit = True
-        cursor = conn.cursor()
-        table_name = (table_name or "").strip()
-        part_number = (part_number or "").strip()
+        if interactive:
+            if table_name is None:
+                table_name = input("Table name: ").strip()
+            else:
+                table_name = table_name.strip()
+
+            if part_number is None:
+                part_number = input("Part number to update: ").strip()
+            else:
+                part_number = part_number.strip()
+
+            if part_name is None:
+                raw = input("New part name (leave empty = no change): ").strip()
+                part_name = raw if raw else None
+
+            if category is None:
+                raw = input("New category (leave empty = no change): ").strip()
+                category = raw if raw else None
+
+            if price is None:
+                raw = input("New price (leave empty = no change): ").strip()
+                if raw:
+                    try:
+                        price = float(raw)
+
+                    except ValueError:
+                        return {"error": "Invalid price"}
+
+        else:
+            table_name = (table_name or "").strip()
+            part_number = (part_number or "").strip()
         if not table_name:
             return {"error": "Missing table_name"}
         if not part_number:
             return {"error": "Missing part_number"}
+        conn = connect_write()
+        conn.autocommit = True
+        cursor = conn.cursor()
         sets = []
         params = []
         if part_name is not None:
-            part_name = (part_name or "").strip()
+            part_name = part_name.strip()
             sets.append(sql.SQL("part_name = %s"))
             params.append(part_name)
         if category is not None:
-            category = (category or "").strip()
+            category = category.strip()
             sets.append(sql.SQL("category = %s"))
             params.append(category)
         if price is not None:

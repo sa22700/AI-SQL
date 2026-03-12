@@ -1,5 +1,7 @@
 import flet as ft
 
+
+
 def show_update_part(page: ft.Page, state, api, go) -> None:
     page.clean()
     table_tf = ft.TextField(label="Table name", width=400)
@@ -45,14 +47,13 @@ def show_update_part(page: ft.Page, state, api, go) -> None:
             page.update()
             return
         payload = {
-            "admin_username": state.username,
-            "admin_password": state.password,
+            "username": state.username,
+            "password": state.password,
             "table_name": table_name,
-            "part_number": part_number,
-            "part_name": part_name,
-            "category": category,
-            "price": price,
-            "confirm": False
+            "target_part_number": part_number,
+            "new_part_name": part_name,
+            "new_category": category,
+            "new_price": price,
         }
         status_txt.value = "Updating..."
         page.update()
