@@ -17,6 +17,7 @@ from core.DelTable import drop_table
 from core.DelParts import delete_part
 from core.UpdParts import update_part
 from backend.Depend import verify_user, verify_admin
+from Httpfail import raise_for_error
 
 app = FastAPI()
 
@@ -31,11 +32,16 @@ def login(req: LoginRequest) -> dict:
 
 @app.post("/aisql", response_model=AskResponse)
 def aisql(req: AskRequest) -> dict:
-    verify_user(req.username, req.password)
-    out = sql_driver(question=req.question)
-    if "error" in out:
-        raise HTTPException(status_code=400, detail=out["error"])
-    return out
+    try:
+        verify_user(req.username, req.password)
+        out = sql_driver(question=req.question)
+        return out
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/add_user", response_model=AddUserResponse)
 def add_user(req: AddUserRequest) -> dict:
@@ -47,9 +53,8 @@ def add_user(req: AddUserRequest) -> dict:
         new_password=req.new_password,
         confirm_password=req.confirm_password,
     )
-    if out.get("ok"):
-        return {"ok": True, "username": out.get("username"), "error": None}
-    raise HTTPException(status_code=400, detail=out.get("error", "User creation failed"))
+    raise_for_error(out)
+    return {"ok": True, "username": out.get("username"), "error": None}
 
 @app.post("/delete_user", response_model=DeleteUserResponse)
 def delete_user_endpoint(req: DeleteUserRequest) -> dict:
@@ -59,10 +64,7 @@ def delete_user_endpoint(req: DeleteUserRequest) -> dict:
         admin_password=req.password,
         username=req.username_to_delete,
     )
-    if out.get("error"):
-        if out["error"] == "User not found":
-            raise HTTPException(status_code=404, detail=out["error"])
-        raise HTTPException(status_code=400, detail=out["error"])
+    raise_for_error(out)
     return {"ok": True, "deleted": out.get("deleted"), "error": None}
 
 @app.post("/database", response_model=DatabaseResponse)
@@ -76,8 +78,7 @@ def database_endpoint(req: DatabaseRequest) -> dict:
         rows_to=[(r.part_name, r.part_number, r.category, r.price) for r in req.rows] if req.rows else None,
         fetch=req.fetch,
     )
-    if out.get("error"):
-        raise HTTPException(status_code=400, detail=out["error"])
+    raise_for_error(out)
     return out
 
 @app.post("/delete_table", response_model=DeleteTableResponse)
@@ -90,8 +91,7 @@ def delete_table_endpoint(req: DeleteTableRequest) -> dict:
         cascade=False,
         confirm=False,
     )
-    if out.get("error"):
-        raise HTTPException(status_code=400, detail=out["error"])
+    raise_for_error(out)
     return {"ok": True, "deleted": out.get("deleted"), "error": None}
 
 @app.post("/delete_part", response_model=DeletePartResponse)
@@ -104,10 +104,7 @@ def delete_part_endpoint(req: DeletePartRequest) -> dict:
         admin_password=req.password,
         confirm=False,
     )
-    if out.get("error"):
-        if out["error"] == "Not found":
-            raise HTTPException(status_code=404, detail=out["error"])
-        raise HTTPException(status_code=400, detail=out["error"])
+    raise_for_error(out)
     return {"ok": True, "deleted": out.get("deleted"), "error": None}
 
 @app.put("/update_part", response_model=UpdatePartResponse)
@@ -123,8 +120,5 @@ def update_part_endpoint(req: UpdatePartRequest) -> dict:
         admin_password=req.password,
         confirm=False,
     )
-    if out.get("error"):
-        if out["error"] == "Not found":
-            raise HTTPException(status_code=404, detail=out["error"])
-        raise HTTPException(status_code=400, detail=out["error"])
+    raise_for_error(out)
     return {"ok": True, "updated": req.target_part_number, "error": None}

@@ -5,8 +5,7 @@ def main() -> None:
     app = os.environ['UVICORN_APP']
     host = os.environ['UVICORN_HOST']
     port = int(os.environ['UVICORN_PORT'])
-    reload_ = os.environ['UVICORN_RELOAD']
-
+    reload_ = True
     uvicorn.run(
         app,
         host=host,

@@ -2,6 +2,7 @@ import os
 import shutil
 import psycopg2
 import subprocess
+from DebugLog import debug_log
 
 def connect_read():
     return psycopg2.connect(
@@ -49,6 +50,7 @@ def cuda_available() -> float:
 
     except Exception as e:
         print(f"VRAM-check failed: {e}")
+        debug_log(f"VRAM-check failed: {e}")
         return 0.0
 
 def estimate_n_gpu_layers(vram_gb) -> int:
