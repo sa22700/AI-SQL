@@ -1,5 +1,6 @@
 import flet as ft
 from ui.Utils import clean_rows
+from core.DebugLog import log_error
 
 def show_query(page: ft.Page, state, api, go) -> None:
     page.clean()
@@ -29,6 +30,7 @@ def show_query(page: ft.Page, state, api, go) -> None:
             page.update()
 
         except Exception as ex:
+            log_error(f"Request failed: {ex}")
             status_txt.value = f"Request failed: {ex}"
             page.update()
 

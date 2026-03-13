@@ -1,5 +1,6 @@
 import flet as ft
 import json
+from core.DebugLog import log_error
 
 def show_database(page: ft.Page, state, api, go) -> None:
     page.clean()
@@ -36,6 +37,7 @@ def show_database(page: ft.Page, state, api, go) -> None:
                 price = float(parts[3].replace(",", "."))
 
             except ValueError:
+                log_error(f"Bad price: {parts[3]}")
                 status_txt.value = f"Bad price: {parts[3]}"
                 page.update()
                 return
@@ -65,6 +67,7 @@ def show_database(page: ft.Page, state, api, go) -> None:
                     status_txt.value = f"DB failed: {loader.json().get('detail')}"
 
                 except Exception:
+                    log_error(f"DB failed: {loader.text}")
                     status_txt.value = f"DB failed: {loader.text}"
 
                 page.update()
@@ -75,6 +78,7 @@ def show_database(page: ft.Page, state, api, go) -> None:
             page.update()
 
         except Exception as ex:
+            log_error(f"Request failed: {ex}")
             status_txt.value = f"Request failed: {ex}"
             page.update()
 

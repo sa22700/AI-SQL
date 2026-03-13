@@ -1,14 +1,24 @@
 from fastapi import HTTPException
 from core.SQLuser import ask_user
+from core.DebugLog import log_error
+from Httpfail import raise_for_error
 
 def verify_user(username: str, password: str) -> dict:
-    res = ask_user(username=username, password=password)
-    if not res.get("ok"):
-        raise HTTPException(status_code=401, detail=res.get("error", "Invalid credentials"))
-    return res
+    try:
+        res = ask_user(username=username, password=password)
+        raise_for_error(res)
+        return res
+
+    except Exception as e:
+        log_error(str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 def verify_admin(username: str, password: str) -> dict:
-    res = verify_user(username, password)
-    if not res.get("user", {}).get("is_admin"):
-        raise HTTPException(status_code=403, detail="Admin required")
-    return res
+    try:
+        res = verify_user(username, password)
+        raise_for_error(res)
+        return res
+
+    except Exception as e:
+        log_error(str(e))
+        raise HTTPException(status_code=500, detail=str(e))

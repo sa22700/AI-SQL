@@ -1,4 +1,5 @@
 import flet as ft
+from core.DebugLog import log_error
 
 def show_delete_table(page: ft.Page, state, api, go) -> None:
     page.clean()
@@ -36,6 +37,7 @@ def show_delete_table(page: ft.Page, state, api, go) -> None:
             page.update()
 
         except Exception as ex:
+            log_error(f"Request failed: {ex}")
             status_txt.value = f"Request failed: {ex}"
             page.update()
 

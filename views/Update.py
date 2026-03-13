@@ -1,6 +1,5 @@
 import flet as ft
-
-
+from core.DebugLog import log_error
 
 def show_update_part(page: ft.Page, state, api, go) -> None:
     page.clean()
@@ -38,6 +37,7 @@ def show_update_part(page: ft.Page, state, api, go) -> None:
                 price = float(price_raw[3].replace(",", ""))
 
             except ValueError:
+                log_error(f"Invalid price: {price_raw}")
                 status_txt.value = "Invalid price"
                 page.update()
                 return
@@ -70,6 +70,7 @@ def show_update_part(page: ft.Page, state, api, go) -> None:
             page.update()
 
         except Exception as ex:
+            log_error(f"Request failed: {ex}")
             status_txt.value = f"Request failed: {ex}"
             page.update()
 

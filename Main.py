@@ -25,8 +25,11 @@ def main_menu() -> None:
             try:
                 choice = int(input("Choose action: "))
                 break
+
             except ValueError:
+                log_error("Invalid choice. Please enter a number.")
                 print("Invalid choice. Please enter a number.")
+
         if choice == 1:
             result = sql_driver()
             print(clean_rows(result.get("sql", "")))
@@ -67,8 +70,8 @@ def start() -> None:
             log_error("Login failure")
 
     except Exception as e:
-        print(f"Unexpected error: {e}")
         log_error(f"Unexpected error in start(): {e}")
+        print(f"Unexpected error: {e}")
 
 if __name__ == '__main__':
     start()

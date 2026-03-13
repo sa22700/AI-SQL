@@ -18,6 +18,7 @@ from core.DelParts import delete_part
 from core.UpdParts import update_part
 from backend.Depend import verify_user, verify_admin
 from Httpfail import raise_for_error
+from core.DebugLog import log_error
 
 app = FastAPI()
 
@@ -35,12 +36,14 @@ def aisql(req: AskRequest) -> dict:
     try:
         verify_user(req.username, req.password)
         out = sql_driver(question=req.question)
+        raise_for_error(out)
         return out
 
-    except HTTPException:
+    except HTTPException as e:
         raise
 
     except Exception as e:
+        log_error(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/add_user", response_model=AddUserResponse)

@@ -1,4 +1,5 @@
 import flet as ft
+from core.DebugLog import log_error
 
 def show_login(page: ft.Page, state, api, go) -> None:
     page.clean()
@@ -18,6 +19,7 @@ def show_login(page: ft.Page, state, api, go) -> None:
                     status_txt.value = f"Login failed: {loader.json().get('detail')}"
 
                 except Exception:
+                    log_error(f"Login failed: {loader.text}")
                     status_txt.value = f"Login failed: {loader.text}"
 
                 page.update()
@@ -27,6 +29,7 @@ def show_login(page: ft.Page, state, api, go) -> None:
             go("main menu")
 
         except Exception as ex:
+            log_error(f"Request failed: {ex}")
             status_txt.value = f"Request failed: {ex}"
             page.update()
 
