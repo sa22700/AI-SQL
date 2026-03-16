@@ -8,17 +8,14 @@ def verify_user(username: str, password: str) -> dict:
         res = ask_user(username=username, password=password)
         raise_for_error(res)
         return res
-
+    except HTTPException:
+        raise
     except Exception as e:
-        log_error(str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        log_error(f"verify_user failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 def verify_admin(username: str, password: str) -> dict:
-    try:
-        res = verify_user(username, password)
-        raise_for_error(res)
-        return res
-
-    except Exception as e:
-        log_error(str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+    res = verify_user(username, password)
+    if not res.get("user", {}).get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin required")
+    return res
