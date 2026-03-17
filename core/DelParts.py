@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Pirkka Toivakka
+# SPDX-License-Identifier: Apache-2.0
+
 import psycopg2
 from psycopg2 import sql
 from core.DebugLog import log_error

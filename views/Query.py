@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Pirkka Toivakka
+# SPDX-License-Identifier: Apache-2.0
+
 import flet as ft
 from ui.Utils import clean_rows
 from core.DebugLog import log_error

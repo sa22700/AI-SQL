@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Pirkka Toivakka
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from llama_cpp import Llama
 import sys
