@@ -4,7 +4,7 @@
 from fastapi import HTTPException
 from core.SQLuser import ask_user
 from core.DebugLog import log_error
-from Httpfail import raise_for_error
+from backend.Httpfail import raise_for_error
 
 def verify_user(username: str, password: str) -> dict:
     try:

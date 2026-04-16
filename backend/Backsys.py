@@ -20,7 +20,7 @@ from core.DelTable import drop_table
 from core.DelParts import delete_part
 from core.UpdParts import update_part
 from backend.Depend import verify_user, verify_admin
-from Httpfail import raise_for_error
+from backend.Httpfail import raise_for_error
 from core.DebugLog import log_error
 
 app = FastAPI()

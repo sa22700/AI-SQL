@@ -35,8 +35,11 @@ def main_menu() -> None:
 
         if choice == 1:
             result = sql_driver()
-            print(clean_rows(result.get("sql", "")))
-            print(clean_rows(result.get("rows", "")))
+            if "error" in result:
+                print(result["error"])
+            else:
+                print(result["sql"])
+                print(clean_rows(result.get("rows", [])))
         elif choice == 2:
             database()
         elif choice == 3:
