@@ -6,6 +6,7 @@ from argon2 import PasswordHasher, exceptions
 from core.DebugLog import log_error
 from core.Connection import connect_read, connect_write
 from getpass import getpass
+from core.CheckDB import check_users_table
 
 def ask_user(
         username: str | None = None,
@@ -23,6 +24,9 @@ def ask_user(
         booth_confirm is None
     )
     try:
+        check = check_users_table()
+        if "error" in check:
+            return check
         conn = connect_read()
         conn.autocommit = True
         cursor = conn.cursor()
