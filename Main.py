@@ -3,7 +3,7 @@
 
 from core.SQLuser import ask_user
 from core.SQLcreate import database
-from core.SQLcoder import sql_driver
+from core.SQLcoder import sql_driver, load_model
 from core.AddUser import add_new_user
 from core.DebugLog import log_error
 from core.DelUser import delete_user
@@ -28,6 +28,7 @@ def print_result(result: dict | None) -> None:
     print(result)
 
 def main_menu() -> None:
+    llm = None
     while True:
         print("\n--- Main Menu ---")
         print("1. Run SQL AI (SQLcoder)")
@@ -48,9 +49,13 @@ def main_menu() -> None:
                 print("Invalid choice. Please enter a number.")
 
         if choice == 1:
-            result = sql_driver()
+            if llm is None:
+                print("Loading model...")
+                llm = load_model()
+                print("Model loaded.")
+            result = sql_driver(llm)
             if "error" in result:
-                print(result["error"])
+                print(f"Error: {result['error']}")
             else:
                 print(result["sql"])
                 print(clean_rows(result.get("rows", [])))

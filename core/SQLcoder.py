@@ -2,40 +2,46 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-from llama_cpp import Llama
 import sys
-import psycopg2
 import json
+import psycopg2
+from llama_cpp import Llama
 from ui.Utils import clean_sql
 from core.DebugLog import log_error
 from core.Connection import connect_read, cuda_available, estimate_n_gpu_layers
 
+def load_model() -> Llama:
+    vram_gb = cuda_available()
+    if vram_gb > 0:
+        n_gpu_layers = estimate_n_gpu_layers(vram_gb)
+    else:
+        n_gpu_layers = 0
+    model_path = os.getenv("LLM_MODEL")
+    if not model_path:
+        raise RuntimeError("LLM_MODEL environment variable is not set")
+    llm = Llama(
+        model_path=model_path,
+        use_mmap=False,
+        n_gpu_layers=n_gpu_layers,
+        n_ctx=4096
+    )
+    return llm
 
-def sql_driver(question: str | None = None) -> dict:
+def sql_driver(llm: Llama, question: str | None = None) -> dict:
     conn = None
     cursor = None
     devnull = None
     old_stderr = sys.stderr
     try:
+        schema_path = os.getenv("SCHEMA")
+        if not schema_path:
+            return {"error": "SCHEMA environment variable is not set"}
         conn = connect_read()
         conn.set_session(readonly=True, autocommit=False)
         cursor = conn.cursor()
         try:
             devnull = open(os.devnull, "w")
             sys.stderr = devnull
-            vram_gb = cuda_available()
-            if vram_gb > 0:
-                n_gpu_layers = estimate_n_gpu_layers(vram_gb)
-            else:
-                n_gpu_layers = 0
-            model_path = os.getenv("LLM_MODEL")
-            schema_path = os.getenv("SCHEMA")
-            llm = Llama(
-                model_path=model_path,
-                use_mmap=False,
-                n_gpu_layers=n_gpu_layers,
-                n_ctx=4096
-            )
             with open(schema_path, "r", encoding="utf-8") as f:
                 schema = json.load(f)
             prompt = (
@@ -95,7 +101,7 @@ def sql_driver(question: str | None = None) -> dict:
             rows = cursor.fetchall()
             return {
                 "sql": sql_query,
-                "rows": [list(r) for r in rows]
+                "rows": [list(row) for row in rows]
             }
         finally:
             sys.stderr = old_stderr
