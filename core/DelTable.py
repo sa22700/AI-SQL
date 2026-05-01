@@ -3,9 +3,10 @@
 
 import psycopg2
 from psycopg2 import sql
-from core.SQLuser import ask_user
+from core.SQLAuth import require_admin
 from core.DebugLog import log_error
 from core.Connection import connect_write
+from core.SchemaBuilder import remove_schema_table
 
 def drop_table(
     admin_username: str | None = None,
@@ -18,25 +19,17 @@ def drop_table(
     cursor = None
     interactive = (
         admin_username is None
-        or admin_password is None
-        or table_name is None
+        and admin_password is None
+        and table_name is None
     )
     try:
-        if interactive:
-            auth = ask_user()
-        else:
-            admin_username = (admin_username or "").strip()
-            admin_password = admin_password or ""
-            if not admin_username or not admin_password:
-                return {"error": "Invalid admin credentials"}
-            auth = ask_user(username=admin_username, password=admin_password)
+        auth = require_admin(
+            admin_username=admin_username,
+            admin_password=admin_password,
+            interactive=interactive
+        )
         if not auth.get("ok"):
-            return {"error": auth.get("error", "Login failed")}
-        if not auth.get("user", {}).get("is_admin"):
-            return {"error": "Admin required"}
-        conn = connect_write()
-        conn.autocommit = True
-        cursor = conn.cursor()
+            return auth
         if interactive:
             table_name = (input("Table to delete: ") or "").strip()
         else:
@@ -45,20 +38,38 @@ def drop_table(
             return {"error": "Missing table_name"}
         if confirm:
             if interactive:
-                ans = (input(f"Delete table '{table_name}'? (y/n): ") or "").strip().lower()
-                if ans != "y":
+                answer = (
+                    input(f"Delete table '{table_name}'? (y/n): ") or ""
+                ).strip().lower()
+                if answer != "y":
                     return {"error": "Cancelled"}
             else:
                 return {"error": "Confirmation required"}
-        drop_sql = sql.SQL("DROP TABLE IF EXISTS {}{};").format(
+        conn = connect_write()
+        conn.autocommit = True
+        cursor = conn.cursor()
+        drop_sql = sql.SQL(
+            "DROP TABLE IF EXISTS {}{};"
+        ).format(
             sql.Identifier(table_name),
-            sql.SQL(" CASCADE") if cascade else sql.SQL(""),
+            sql.SQL(" CASCADE") if cascade else sql.SQL("")
         )
         cursor.execute(drop_sql)
-        return {"ok": True, "dropped": table_name, "cascade": cascade}
+        schema_result = remove_schema_table(
+            table_name=table_name,
+            interactive=interactive
+        )
+        if "error" in schema_result:
+            return schema_result
+        return {
+            "ok": True,
+            "dropped": table_name,
+            "cascade": cascade,
+            "schema": schema_result.get("action")
+        }
 
     except psycopg2.Error as e:
-        log_error(f"Database error: {e}")
+        log_error(f"Database error in drop_table(): {e}")
         return {"error": str(e)}
 
     finally:

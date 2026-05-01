@@ -12,12 +12,26 @@ from core.DelParts import delete_part
 from core.UpdParts import update_part
 from ui.Utils import clean_rows
 
+def print_result(result: dict | None) -> None:
+    if result is None:
+        print("No result returned.")
+        return
+    if "error" in result:
+        print(f"Error: {result['error']}")
+        return
+    if result.get("ok"):
+        print("Operation completed successfully.")
+        for key, value in result.items():
+            if key != "ok":
+                print(f"{key}: {value}")
+        return
+    print(result)
 
 def main_menu() -> None:
     while True:
         print("\n--- Main Menu ---")
         print("1. Run SQL AI (SQLcoder)")
-        print("2. Create database (admin only)")
+        print("2. Create new table (admin only)")
         print("3. Add new user (admin only)")
         print("4. Delete user (admin only)")
         print("5. Delete table (admin only)")
@@ -41,17 +55,23 @@ def main_menu() -> None:
                 print(result["sql"])
                 print(clean_rows(result.get("rows", [])))
         elif choice == 2:
-            database()
+            result = database()
+            print_result(result)
         elif choice == 3:
-            add_new_user()
+            result = add_new_user()
+            print_result(result)
         elif choice == 4:
-            delete_user()
+            result = delete_user()
+            print_result(result)
         elif choice == 5:
-            drop_table()
+            result = drop_table()
+            print_result(result)
         elif choice == 6:
-            delete_part()
+            result = delete_part()
+            print_result(result)
         elif choice == 7:
-            update_part()
+            result = update_part()
+            print_result(result)
         elif choice == 0:
             print("Logging out. Goodbye!")
             break

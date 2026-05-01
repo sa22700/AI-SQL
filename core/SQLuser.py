@@ -81,7 +81,6 @@ def ask_user(
                 cursor.close()
             if conn is not None:
                 conn.close()
-
             conn = connect_read()
             conn.autocommit = True
             cursor = conn.cursor()
@@ -103,13 +102,13 @@ def ask_user(
                 stored_hash = row[0]
                 try:
                     ph.verify(stored_hash, password)
-                    print("Login successful")
                     return {'ok': True, 'username': username, "user": {'is_admin': bool(row[1])}}
 
                 except (exceptions.VerifyMismatchError, exceptions.VerificationError):
                     print("Wrong username or password.")
                     log_error("Wrong username or password")
                     continue
+
         else:
             if not username or not str(username).strip():
                 return {'error': 'Missing username'}
@@ -118,15 +117,15 @@ def ask_user(
             cursor.execute('SELECT "password", is_admin FROM users WHERE username = %s', (username,))
             row = cursor.fetchone()
             if not row:
-                return {'error': 'Username does not exist'}
+                return {'error': 'Wrong username or password'}
             stored_hash = row[0]
             try:
                 ph.verify(stored_hash, password)
                 return {'ok': True, 'username': username, "user": {'is_admin': bool(row[1])}}
+
             except (exceptions.VerifyMismatchError, exceptions.VerificationError):
                 log_error("Wrong username or password")
                 return {"error": "Wrong username or password"}
-
 
     except psycopg2.Error as e:
         log_error(f"Error in ask_user(): {e}")
