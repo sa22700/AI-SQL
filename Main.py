@@ -50,9 +50,16 @@ def main_menu() -> None:
 
         if choice == 1:
             if llm is None:
-                print("Loading model...")
-                llm = load_model()
-                print("Model loaded.")
+                try:
+                    print("Loading model...")
+                    llm = load_model()
+                    print("Model loaded.")
+
+                except Exception as e:
+                    log_error(f"Failed to load model: {e}")
+                    print(f"Failed to load model: {e}")
+                    continue
+                    
             result = sql_driver(llm)
             if "error" in result:
                 print(f"Error: {result['error']}")

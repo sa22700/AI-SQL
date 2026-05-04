@@ -12,10 +12,7 @@ from core.Connection import connect_read, cuda_available, estimate_n_gpu_layers
 
 def load_model() -> Llama:
     vram_gb = cuda_available()
-    if vram_gb > 0:
-        n_gpu_layers = estimate_n_gpu_layers(vram_gb)
-    else:
-        n_gpu_layers = 0
+    n_gpu_layers = estimate_n_gpu_layers(vram_gb)
     model_path = os.getenv("LLM_MODEL")
     if not model_path:
         raise RuntimeError("LLM_MODEL environment variable is not set")
