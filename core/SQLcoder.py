@@ -31,6 +31,7 @@ def sql_driver(llm: Llama, question: str | None = None) -> dict:
     old_stderr = sys.stderr
     try:
         schema_path = os.getenv("SCHEMA")
+        prompt_path = os.getenv("SQL_PROMPT")
         if not schema_path:
             return {"error": "SCHEMA environment variable is not set"}
         conn = connect_read()
@@ -41,17 +42,8 @@ def sql_driver(llm: Llama, question: str | None = None) -> dict:
             sys.stderr = devnull
             with open(schema_path, "r", encoding="utf-8") as f:
                 schema = json.load(f)
-            prompt = (
-                "You are a PostgreSQL SQL generator.\n"
-                "Return exactly one valid PostgreSQL SELECT query.\n"
-                "Do not explain anything.\n"
-                "Do not return markdown.\n"
-                "Do not return code fences.\n"
-                "Use only tables and columns listed below.\n"
-                "Never invent table names or column names.\n"
-                "Use ILIKE for text matching when searching by part name.\n\n"
-                "Schema:\n"
-            )
+            with open(prompt_path, "r", encoding="utf-8") as f:
+                prompt = f.read().strip()
             for table in schema:
                 table_name = table["table"]
                 prompt += f"\nTable: {table_name}\n"
