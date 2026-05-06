@@ -9,6 +9,7 @@ def show_register(page: ft.Page, state, api, go) -> None:
     new_user_tf = ft.TextField(label="New username", width=400)
     new_pass_tf = ft.TextField(label="New password", password=True, can_reveal_password=True, width=400)
     confirm_tf = ft.TextField(label="Confirm password", password=True, can_reveal_password=True, width=400)
+    is_admin_tf = ft.Checkbox(label="Is admin", value=False)
     status_txt = ft.Text("")
 
     async def create_user_click(e) -> None:
@@ -21,7 +22,8 @@ def show_register(page: ft.Page, state, api, go) -> None:
             "password": state.password,
             "new_username": new_user_tf.value,
             "new_password": new_pass_tf.value,
-            "confirm_password": confirm_tf.value
+            "confirm_password": confirm_tf.value,
+            "is_admin": bool(is_admin_tf.value)
         }
         status_txt.value = "Creating user..."
         page.update()
@@ -56,6 +58,7 @@ def show_register(page: ft.Page, state, api, go) -> None:
                 new_user_tf,
                 new_pass_tf,
                 confirm_tf,
+                is_admin_tf,
                 ft.Row(
                     [
                         ft.Button("Create", on_click=create_user_click),

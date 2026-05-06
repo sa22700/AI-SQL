@@ -23,10 +23,12 @@ class AddUserRequest(LoginRequest):
     new_username: str
     new_password: str
     confirm_password: str
+    is_admin: bool = False
 
 class AddUserResponse(BaseModel):
     ok: bool
     username: str | None = None
+    is_admin: bool | None = None
     error: str | None = None
 
 class DeleteUserRequest(LoginRequest):

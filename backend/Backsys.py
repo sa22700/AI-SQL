@@ -33,7 +33,9 @@ def health() -> dict:
 def login(req: LoginRequest) -> dict:
     try:
         verify_user(req.username, req.password)
-        return {"ok": True, "username": req.username, "error": None}
+        return {"ok": True,
+                "username": req.username,
+                "error": None}
 
     except HTTPException:
         raise
@@ -67,9 +69,13 @@ def add_user(req: AddUserRequest) -> dict:
             new_username=req.new_username,
             new_password=req.new_password,
             confirm_password=req.confirm_password,
+            is_admin=req.is_admin
         )
         raise_for_error(out)
-        return {"ok": True, "username": out.get("username"), "error": None}
+        return {"ok": True,
+                "username": out.get("username"),
+                "is_admin": out.get("is_admin"),
+                "error": None}
 
     except HTTPException:
         raise
@@ -88,7 +94,9 @@ def delete_user_endpoint(req: DeleteUserRequest) -> dict:
             username=req.username_to_delete,
         )
         raise_for_error(out)
-        return {"ok": True, "deleted": out.get("deleted"), "error": None}
+        return {"ok": True,
+                "deleted": out.get("deleted"),
+                "error": None}
 
     except HTTPException:
         raise
@@ -131,7 +139,9 @@ def delete_table_endpoint(req: DeleteTableRequest) -> dict:
             confirm=False,
         )
         raise_for_error(out)
-        return {"ok": True, "deleted": out.get("deleted"), "error": None}
+        return {"ok": True,
+                "deleted": out.get("deleted"),
+                "error": None}
 
     except HTTPException:
         raise
@@ -152,7 +162,9 @@ def delete_part_endpoint(req: DeletePartRequest) -> dict:
             confirm=False,
         )
         raise_for_error(out)
-        return {"ok": True, "deleted": out.get("deleted"), "error": None}
+        return {"ok": True,
+                "deleted": out.get("deleted"),
+                "error": None}
 
     except HTTPException:
         raise
@@ -176,7 +188,9 @@ def update_part_endpoint(req: UpdatePartRequest) -> dict:
             confirm=False,
         )
         raise_for_error(out)
-        return {"ok": True, "updated": req.target_part_number, "error": None}
+        return {"ok": True,
+                "updated": req.target_part_number,
+                "error": None}
 
     except HTTPException:
         raise

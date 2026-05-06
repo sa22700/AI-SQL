@@ -13,7 +13,8 @@ def add_new_user(
     admin_password: str | None = None,
     new_username: str | None = None,
     new_password: str | None = None,
-    confirm_password: str | None = None
+    confirm_password: str | None = None,
+    is_admin: bool = False
 ) -> dict:
     ph = PasswordHasher()
     interactive = (
@@ -56,10 +57,12 @@ def add_new_user(
                         if row:
                             print("Username already exists.")
                             continue
+                        is_admin = input("Do you want to add admin rights? (y/n): ").strip().lower()
+                        is_admin = is_admin == "y"
                         hashed = ph.hash(new_password)
                         cursor.execute(
-                            'INSERT INTO users (username, "password") VALUES (%s, %s)',
-                            (new_username, hashed)
+                            'INSERT INTO users (username, "password", is_admin) VALUES (%s, %s, %s)',
+                            (new_username, hashed, is_admin)
                         )
                         print(f"Username {new_username} added.")
                         add_more = input("Do you want to add more? (y/n): ").strip().lower()
@@ -87,12 +90,13 @@ def add_new_user(
                         return {"error": "Username already exists"}
                     hashed = ph.hash(new_password)
                     cursor.execute(
-                        'INSERT INTO users (username, "password") VALUES (%s, %s)',
-                        (new_username, hashed)
+                        'INSERT INTO users (username, "password", is_admin) VALUES (%s, %s, %s)',
+                        (new_username, hashed, is_admin)
                     )
                     return {
                         "ok": True,
-                        "username": new_username
+                        "username": new_username,
+                        "is_admin": is_admin
                     }
 
     except psycopg.Error as e:
