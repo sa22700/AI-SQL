@@ -10,8 +10,8 @@ The following third-party libraries are used under their own licenses:
 - httpx — BSD-3-Clause
 - uvicorn — BSD-3-Clause
 - flet — Apache-2.0
-- psycopg2 — LGPL with exceptions
+- psycopg — LGPL3.0-only with exceptions
 
 ## Notes
 
-- psycopg2 is used as an external dependency and remains under its own license.
+- psycopg is used as an external dependency and remains under its own license.
