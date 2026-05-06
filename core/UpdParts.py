@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Pirkka Toivakka
 # SPDX-License-Identifier: Apache-2.0
 
-import psycopg2
-from psycopg2 import sql
+import psycopg
+from psycopg import sql
 from core.SQLAuth import require_admin
 from core.DebugLog import log_error
 from core.Connection import connect_write
@@ -17,8 +17,6 @@ def update_part(
     admin_password: str | None = None,
     confirm: bool = True,
 ) -> dict:
-    conn = None
-    cursor = None
     interactive = (
         admin_username is None
         and admin_password is None
@@ -93,31 +91,24 @@ def update_part(
                     return {"error": "Cancelled"}
             else:
                 return {"error": "Confirmation required"}
-        conn = connect_write()
-        conn.autocommit = True
-        cursor = conn.cursor()
-        params.append(part_number)
-        update_sql = (
-            sql.SQL("UPDATE {} SET ").format(sql.Identifier(table_name))
-            + sql.SQL(", ").join(sets)
-            + sql.SQL(" WHERE part_number = %s RETURNING *;")
-        )
-        cursor.execute(update_sql, tuple(params))
-        row = cursor.fetchone()
-        if not row:
-            return {"error": "Not found"}
-        columns = [column[0] for column in cursor.description]
-        return {
-            "ok": True,
-            "updated": dict(zip(columns, row))
-        }
+        with connect_write() as conn:
+            with conn.cursor() as cursor:
+                params.append(part_number)
+                update_sql = (
+                    sql.SQL("UPDATE {} SET ").format(sql.Identifier(table_name))
+                    + sql.SQL(", ").join(sets)
+                    + sql.SQL(" WHERE part_number = %s RETURNING *;")
+                )
+                cursor.execute(update_sql, tuple(params))
+                row = cursor.fetchone()
+                if not row:
+                    return {"error": "Not found"}
+                columns = [column[0] for column in cursor.description]
+                return {
+                    "ok": True,
+                    "updated": dict(zip(columns, row))
+                }
 
-    except psycopg2.Error as e:
+    except psycopg.Error as e:
         log_error(f"Database error in update_part(): {e}")
         return {"error": str(e)}
-
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None:
-            conn.close()

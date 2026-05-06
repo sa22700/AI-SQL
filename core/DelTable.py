@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Pirkka Toivakka
 # SPDX-License-Identifier: Apache-2.0
 
-import psycopg2
-from psycopg2 import sql
+import psycopg
+from psycopg import sql
 from core.SQLAuth import require_admin
 from core.DebugLog import log_error
 from core.Connection import connect_write
@@ -15,8 +15,6 @@ def drop_table(
     cascade: bool = False,
     confirm: bool = True,
 ) -> dict:
-    conn = None
-    cursor = None
     interactive = (
         admin_username is None
         and admin_password is None
@@ -45,35 +43,28 @@ def drop_table(
                     return {"error": "Cancelled"}
             else:
                 return {"error": "Confirmation required"}
-        conn = connect_write()
-        conn.autocommit = True
-        cursor = conn.cursor()
-        drop_sql = sql.SQL(
-            "DROP TABLE IF EXISTS {}{};"
-        ).format(
-            sql.Identifier(table_name),
-            sql.SQL(" CASCADE") if cascade else sql.SQL("")
-        )
-        cursor.execute(drop_sql)
-        schema_result = remove_schema_table(
-            table_name=table_name,
-            interactive=interactive
-        )
-        if "error" in schema_result:
-            return schema_result
-        return {
-            "ok": True,
-            "dropped": table_name,
-            "cascade": cascade,
-            "schema": schema_result.get("action")
-        }
+        with connect_write() as conn:
+            with conn.cursor() as cursor:
+                drop_sql = sql.SQL(
+                    "DROP TABLE IF EXISTS {}{};"
+                ).format(
+                    sql.Identifier(table_name),
+                    sql.SQL(" CASCADE") if cascade else sql.SQL("")
+                )
+                cursor.execute(drop_sql)
+                schema_result = remove_schema_table(
+                    table_name=table_name,
+                    interactive=interactive
+                )
+                if "error" in schema_result:
+                    return schema_result
+                return {
+                    "ok": True,
+                    "dropped": table_name,
+                    "cascade": cascade,
+                    "schema": schema_result.get("action")
+                }
 
-    except psycopg2.Error as e:
+    except psycopg.Error as e:
         log_error(f"Database error in drop_table(): {e}")
         return {"error": str(e)}
-
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None:
-            conn.close()

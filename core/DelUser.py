@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Pirkka Toivakka
 # SPDX-License-Identifier: Apache-2.0
 
-import psycopg2
+import psycopg
 from core.SQLAuth import require_admin
 from core.DebugLog import log_error
 from core.Connection import connect_write
@@ -12,8 +12,6 @@ def delete_user(
     username: str | None = None,
     confirm: bool = True
 ) -> dict:
-    cursor = None
-    conn = None
     interactive = (
         admin_username is None
         and admin_password is None
@@ -48,26 +46,19 @@ def delete_user(
                     return {"error": "Cancelled"}
             else:
                 return {"error": "Confirmation required"}
-        conn = connect_write()
-        conn.autocommit = True
-        cursor = conn.cursor()
-        cursor.execute(
-            "DELETE FROM public.users WHERE username = %s",
-            (username,)
-        )
-        if cursor.rowcount == 0:
-            return {"error": "User not found"}
-        return {
-            "ok": True,
-            "deleted": username
-        }
+        with connect_write() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM public.users WHERE username = %s",
+                    (username,)
+                )
+                if cursor.rowcount == 0:
+                    return {"error": "User not found"}
+                return {
+                    "ok": True,
+                    "deleted": username
+                }
 
-    except psycopg2.Error as e:
+    except psycopg.Error as e:
         log_error(f"Database error in delete_user(): {e}")
         return {"error": str(e)}
-
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None:
-            conn.close()

@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Pirkka Toivakka
 # SPDX-License-Identifier: Apache-2.0
 
-import psycopg2
-from psycopg2 import sql
+import psycopg
+from psycopg import sql
 from core.SchemaBuilder import schema_tables, column_builder
 from core.DebugLog import log_error
 from core.Connection import connect_write
@@ -16,8 +16,6 @@ def database(
     rows_to: list[tuple[str, str, str, float]] | None = None,
     fetch: bool = True
 ) -> dict:
-    conn = None
-    cursor = None
     interactive = (
         admin_username is None
         and admin_password is None
@@ -33,133 +31,127 @@ def database(
         )
         if not auth.get("ok"):
             return auth
-        conn = connect_write()
-        conn.autocommit = True
-        cursor = conn.cursor()
-        if interactive:
-            ans = input("Create table? (y/n): ").strip().lower()
-            create_table = ans == "y"
-            while True:
-                if create_table:
-                    table_name = input("Type new table name: ").strip()
-                else:
-                    table_name = input("Type existing table name: ").strip()
-                if not table_name:
-                    print("Table name cannot be empty.")
-                    continue
-                break
-            if not create_table:
-                cursor.execute(
-                    """
-                    SELECT EXISTS (
-                        SELECT 1
-                        FROM information_schema.tables
-                        WHERE table_schema = 'public'
-                        AND table_name = %s
-                    )
-                    """,
-                    (table_name,)
-                )
-                exists = cursor.fetchone()[0]
-                if not exists:
-                    return {"error": f"Table '{table_name}' does not exist"}
-            add_data = input("Add data? (y/n): ").strip().lower()
-            if add_data == "y":
-                rows_to = []
-                while True:
-                    try:
-                        part = input("Part name: ").strip()
-                        number = input("Part number: ").strip()
-                        category = input("Category: ").strip()
-                        price = float(input("Price: "))
-                        rows_to.append((part, number, category, price))
-
-                    except ValueError:
-                        print("Price must be number")
-                        continue
-
-                    add_more = input("Add more data? (y/n): ").strip().lower()
-                    if add_more != "y":
+        with connect_write() as conn:
+            with conn.cursor() as cursor:
+                if interactive:
+                    ans = input("Create table? (y/n): ").strip().lower()
+                    create_table = ans == "y"
+                    while True:
+                        if create_table:
+                            table_name = input("Type new table name: ").strip()
+                        else:
+                            table_name = input("Type existing table name: ").strip()
+                        if not table_name:
+                            print("Table name cannot be empty.")
+                            continue
                         break
-        else:
-            if create_table is None:
-                create_table = False
-            if (create_table or rows_to or fetch) and (not table_name or not str(table_name).strip()):
-                return {"error": "Missing table_name"}
-            table_name = (table_name or "").strip()
-            if not create_table and table_name:
-                cursor.execute(
-                    """
-                    SELECT EXISTS (
-                        SELECT 1
-                        FROM information_schema.tables
-                        WHERE table_schema = 'public'
-                        AND table_name = %s
-                    )
-                    """,
-                    (table_name,)
-                )
-                exists = cursor.fetchone()[0]
-                if not exists:
-                    return {"error": f"Table '{table_name}' does not exist"}
-        created = False
-        if create_table:
-            create_sql = sql.SQL(
-                "CREATE TABLE IF NOT EXISTS {} ("
-                "id SERIAL PRIMARY KEY, "
-                "part_name TEXT, "
-                "part_number TEXT UNIQUE, "
-                "category TEXT, "
-                "price DOUBLE PRECISION"
-                ");"
-            ).format(
-                sql.Identifier(table_name)
-            )
-            cursor.execute(create_sql)
-            created = True
-            columns = column_builder()
-            schema_result = schema_tables(table_name, columns)
-            if "error" in schema_result:
-                return schema_result
-        inserted = 0
-        if rows_to:
-            insert_sql = sql.SQL(
-                "INSERT INTO {} (part_name, part_number, category, price) "
-                "VALUES (%s, %s, %s, %s);"
-            ).format(
-                sql.Identifier(table_name)
-            )
-            for part, number, category, price in rows_to:
-                cursor.execute(
-                    insert_sql,
-                    (part, number, category, price)
-                )
-                inserted += 1
-        result = {
-            "ok": True,
-            "table": table_name,
-            "created": created,
-            "inserted": inserted
-        }
-        if fetch and table_name:
-            select_sql = sql.SQL(
-                "SELECT * FROM {}"
-            ).format(
-                sql.Identifier(table_name)
-            )
-            cursor.execute(select_sql)
-            cols = [column[0] for column in cursor.description]
-            rows = cursor.fetchall()
-            result["columns"] = cols
-            result["rows"] = [list(row) for row in rows]
-        return result
+                    if not create_table:
+                        cursor.execute(
+                            """
+                            SELECT EXISTS (
+                                SELECT 1
+                                FROM information_schema.tables
+                                WHERE table_schema = 'public'
+                                AND table_name = %s
+                            )
+                            """,
+                            (table_name,)
+                        )
+                        exists = cursor.fetchone()[0]
+                        if not exists:
+                            return {"error": f"Table '{table_name}' does not exist"}
+                    add_data = input("Add data? (y/n): ").strip().lower()
+                    if add_data == "y":
+                        rows_to = []
+                        while True:
+                            try:
+                                part = input("Part name: ").strip()
+                                number = input("Part number: ").strip()
+                                category = input("Category: ").strip()
+                                price = float(input("Price: "))
+                                rows_to.append((part, number, category, price))
 
-    except psycopg2.Error as e:
+                            except ValueError:
+                                print("Price must be number")
+                                continue
+
+                            add_more = input("Add more data? (y/n): ").strip().lower()
+                            if add_more != "y":
+                                break
+                else:
+                    if create_table is None:
+                        create_table = False
+                    if (create_table or rows_to or fetch) and (not table_name or not str(table_name).strip()):
+                        return {"error": "Missing table_name"}
+                    table_name = (table_name or "").strip()
+                    if not create_table and table_name:
+                        cursor.execute(
+                            """
+                            SELECT EXISTS (
+                                SELECT 1
+                                FROM information_schema.tables
+                                WHERE table_schema = 'public'
+                                AND table_name = %s
+                            )
+                            """,
+                            (table_name,)
+                        )
+                        exists = cursor.fetchone()[0]
+                        if not exists:
+                            return {"error": f"Table '{table_name}' does not exist"}
+                created = False
+                if create_table:
+                    create_sql = sql.SQL(
+                        "CREATE TABLE IF NOT EXISTS {} ("
+                        "id SERIAL PRIMARY KEY, "
+                        "part_name TEXT, "
+                        "part_number TEXT UNIQUE, "
+                        "category TEXT, "
+                        "price DOUBLE PRECISION"
+                        ");"
+                    ).format(
+                        sql.Identifier(table_name)
+                    )
+                    cursor.execute(create_sql)
+                    columns = column_builder()
+                    schema_result = schema_tables(table_name, columns)
+                    if "error" in schema_result:
+                        conn.rollback()
+                        return schema_result
+                    created = True
+                inserted = 0
+                if rows_to:
+                    insert_sql = sql.SQL(
+                        "INSERT INTO {} (part_name, part_number, category, price) "
+                        "VALUES (%s, %s, %s, %s);"
+                    ).format(
+                        sql.Identifier(table_name)
+                    )
+                    for part, number, category, price in rows_to:
+                        cursor.execute(
+                            insert_sql,
+                            (part, number, category, price)
+                        )
+                        inserted += 1
+                result = {
+                    "ok": True,
+                    "table": table_name,
+                    "created": created,
+                    "inserted": inserted
+                }
+                if fetch and table_name:
+                    select_sql = sql.SQL(
+                        "SELECT * FROM {}"
+                    ).format(
+                        sql.Identifier(table_name)
+                    )
+                    cursor.execute(select_sql)
+                    cols = [column[0] for column in cursor.description]
+                    rows = cursor.fetchall()
+                    result["columns"] = cols
+                    result["rows"] = [list(row) for row in rows]
+                return result
+
+    except psycopg.Error as e:
         log_error(f"Database error in database(): {e}")
         return {"error": str(e)}
-
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None:
-            conn.close()

@@ -3,26 +3,26 @@
 
 import os
 import shutil
-import psycopg2
+import psycopg
 import subprocess
 from core.DebugLog import log_error
 
 def connect_read():
-    return psycopg2.connect(
+    return psycopg.connect(
         host=os.environ['DB_HOST'],
         user=os.environ['DB_READ_USER'],
         password=os.environ['DB_READ_PASS'],
         port=os.environ['DB_PORT'],
-        database=os.environ['DB_NAME']
+        dbname=os.environ['DB_NAME']
     )
 
 def connect_write():
-    return psycopg2.connect(
+    return psycopg.connect(
         host=os.environ["DB_HOST"],
         user=os.environ["DB_WRITE_USER"],
         password=os.environ["DB_WRITE_PASS"],
         port=os.environ["DB_PORT"],
-        database=os.environ["DB_NAME"]
+        dbname=os.environ["DB_NAME"]
     )
 
 def cuda_available() -> float:

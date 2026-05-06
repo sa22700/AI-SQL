@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Pirkka Toivakka
 # SPDX-License-Identifier: Apache-2.0
 
-import psycopg2
-from psycopg2 import sql
+import psycopg
+from psycopg import sql
 from core.SQLAuth import require_admin
 from core.DebugLog import log_error
 from core.Connection import connect_write
@@ -14,8 +14,6 @@ def delete_part(
     admin_password: str | None = None,
     confirm: bool = True
 ) -> dict:
-    conn = None
-    cursor = None
     interactive = (
         table_name is None
         and part_number is None
@@ -51,29 +49,22 @@ def delete_part(
                     return {"error": "Cancelled"}
             else:
                 return {"error": "Confirmation required"}
-        conn = connect_write()
-        conn.autocommit = True
-        cursor = conn.cursor()
-        delete_sql = sql.SQL(
-            "DELETE FROM {} WHERE part_number = %s;"
-        ).format(
-            sql.Identifier(table_name)
-        )
-        cursor.execute(delete_sql, (part_number,))
-        if cursor.rowcount == 0:
-            return {"error": "Not found"}
-        return {
-            "ok": True,
-            "deleted": part_number,
-            "table": table_name
-        }
+        with connect_write() as conn:
+            with conn.cursor() as cursor:
+                delete_sql = sql.SQL(
+                    "DELETE FROM {} WHERE part_number = %s;"
+                ).format(
+                    sql.Identifier(table_name)
+                )
+                cursor.execute(delete_sql, (part_number,))
+                if cursor.rowcount == 0:
+                    return {"error": "Not found"}
+                return {
+                    "ok": True,
+                    "deleted": part_number,
+                    "table": table_name
+                }
 
-    except psycopg2.Error as e:
+    except psycopg.Error as e:
         log_error(f"Database error in delete_part(): {e}")
         return {"error": str(e)}
-
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn is not None:
-            conn.close()
