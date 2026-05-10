@@ -11,15 +11,17 @@ from backend.Backbase import (
     DeleteTableRequest, DeleteTableResponse,
     DeletePartRequest, DeletePartResponse,
     UpdatePartRequest, UpdatePartResponse,
+    UpdateUserRequest, UpdateUserResponse
 )
-from core.SQLcoder import sql_driver
+from core.SQLcoder import sql_driver, load_model
 from core.AddUser import add_new_user
 from core.SQLcreate import database
 from core.DelUser import delete_user
 from core.DelTable import drop_table
 from core.DelParts import delete_part
 from core.UpdParts import update_part
-from backend.Depend import verify_user, verify_admin
+from core.UpdUser import update_user
+from backend.Depends import verify_user, verify_admin
 from backend.Httpfail import raise_for_error
 from core.DebugLog import log_error
 
@@ -32,10 +34,8 @@ def health() -> dict:
 @app.post("/login", response_model=LoginResponse)
 def login(req: LoginRequest) -> dict:
     try:
-        verify_user(req.username, req.password)
-        return {"ok": True,
-                "username": req.username,
-                "error": None}
+        out = verify_user(req.username, req.password)
+        return out
 
     except HTTPException:
         raise
@@ -48,7 +48,9 @@ def login(req: LoginRequest) -> dict:
 def aisql(req: AskRequest) -> dict:
     try:
         verify_user(req.username, req.password)
-        out = sql_driver(question=req.question)
+        if not hasattr(app.state, "llm"):
+            app.state.llm = load_model()
+        out = sql_driver(app.state.llm, question=req.question)
         raise_for_error(out)
         return out
 
@@ -72,10 +74,7 @@ def add_user(req: AddUserRequest) -> dict:
             is_admin=req.is_admin
         )
         raise_for_error(out)
-        return {"ok": True,
-                "username": out.get("username"),
-                "is_admin": out.get("is_admin"),
-                "error": None}
+        return out
 
     except HTTPException:
         raise
@@ -92,11 +91,10 @@ def delete_user_endpoint(req: DeleteUserRequest) -> dict:
             admin_username=req.username,
             admin_password=req.password,
             username=req.username_to_delete,
+            confirm=False,
         )
         raise_for_error(out)
-        return {"ok": True,
-                "deleted": out.get("deleted"),
-                "error": None}
+        return out
 
     except HTTPException:
         raise
@@ -139,9 +137,7 @@ def delete_table_endpoint(req: DeleteTableRequest) -> dict:
             confirm=False,
         )
         raise_for_error(out)
-        return {"ok": True,
-                "deleted": out.get("deleted"),
-                "error": None}
+        return out
 
     except HTTPException:
         raise
@@ -162,9 +158,7 @@ def delete_part_endpoint(req: DeletePartRequest) -> dict:
             confirm=False,
         )
         raise_for_error(out)
-        return {"ok": True,
-                "deleted": out.get("deleted"),
-                "error": None}
+        return out
 
     except HTTPException:
         raise
@@ -188,9 +182,31 @@ def update_part_endpoint(req: UpdatePartRequest) -> dict:
             confirm=False,
         )
         raise_for_error(out)
-        return {"ok": True,
-                "updated": req.target_part_number,
-                "error": None}
+        return out
+
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        log_error(str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/update_user", response_model=UpdateUserResponse)
+def update_user_endpoint(req: UpdateUserRequest) -> dict:
+    try:
+        verify_admin(req.username, req.password)
+        out = update_user(
+            target_username=req.target_username,
+            new_username=req.new_username,
+            new_password=req.new_password,
+            confirm_password=req.confirm_password,
+            is_admin=req.is_admin,
+            admin_username=req.username,
+            admin_password=req.password,
+            confirm=req.confirm,
+        )
+        raise_for_error(out)
+        return out
 
     except HTTPException:
         raise

@@ -33,6 +33,7 @@ def show_page(page: ft.Page, state, api, go) -> None:
                         ft.Button("Delete table", on_click=nav("table")),
                         ft.Button("Delete parts", on_click=nav("parts")),
                         ft.Button("Update parts", on_click=nav("update")),
+                        ft.Button("Update user", on_click=nav("update-user")),
                         ft.Button("Logout", on_click=logout_click),
                         ft.Button("Exit", on_click=exit_click),
                     ],

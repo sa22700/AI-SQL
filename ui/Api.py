@@ -41,3 +41,6 @@ class ApiClient:
 
     async def delete_table(self, payload: dict) -> httpx.Response:
         return await self._post("/delete_table", payload)
+
+    async def update_user(self, payload: dict) -> httpx.Response:
+        return await self._put("/update_user", payload)

@@ -11,6 +11,7 @@ from core.DelTable import drop_table
 from core.DelParts import delete_part
 from core.UpdParts import update_part
 from ui.Utils import clean_rows
+from core.UpdUser import update_user
 
 def print_result(result: dict | None) -> None:
     if result is None:
@@ -31,13 +32,14 @@ def main_menu() -> None:
     llm = None
     while True:
         print("\n--- Main Menu ---")
-        print("1. Run SQL AI (SQLcoder)")
+        print("1. Run question with SQLcoder")
         print("2. Create new table (admin only)")
         print("3. Add new user (admin only)")
         print("4. Delete user (admin only)")
         print("5. Delete table (admin only)")
         print("6. Delete parts (admin only)")
         print("7. Update parts (admin only)")
+        print("8. Update user (admin only)")
         print("0. Logout / Exit")
         while True:
             try:
@@ -83,6 +85,9 @@ def main_menu() -> None:
             print_result(result)
         elif choice == 7:
             result = update_part()
+            print_result(result)
+        elif choice == 8:
+            result = update_user()
             print_result(result)
         elif choice == 0:
             print("Logging out. Goodbye!")

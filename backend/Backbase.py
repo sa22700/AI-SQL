@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from pydantic import BaseModel, Field
+from typing import Any
 
 class LoginRequest(BaseModel):
     username: str
@@ -17,7 +18,8 @@ class AskRequest(LoginRequest):
 
 class AskResponse(BaseModel):
     sql: str
-    rows: list[list]
+    columns: list[str]
+    rows: list[list[Any]]
 
 class AddUserRequest(LoginRequest):
     new_username: str
@@ -57,7 +59,7 @@ class DatabaseResponse(BaseModel):
     created: bool | None = None
     inserted: int | None = None
     columns: list[str] | None = None
-    rows: list[list] | None = None
+    rows: list[list[Any]] | None = None
     error: str | None = None
 
 class DeleteTableRequest(LoginRequest):
@@ -65,7 +67,7 @@ class DeleteTableRequest(LoginRequest):
 
 class DeleteTableResponse(BaseModel):
     ok: bool
-    deleted: str | None = None
+    dropped: str | None = None
     error: str | None = None
 
 class DeletePartRequest(LoginRequest):
@@ -86,5 +88,18 @@ class UpdatePartRequest(LoginRequest):
 
 class UpdatePartResponse(BaseModel):
     ok: bool
-    updated: str | None = None
+    updated: dict[str, Any] | None = None
+    error: str | None = None
+
+class UpdateUserRequest(LoginRequest):
+    target_username: str
+    new_username: str | None = None
+    new_password: str | None = None
+    confirm_password: str | None = None
+    is_admin: bool | None = None
+    confirm: bool = True
+
+class UpdateUserResponse(BaseModel):
+    ok: bool
+    updated: dict[str, Any] | None = None
     error: str | None = None

@@ -83,10 +83,13 @@ def sql_driver(llm: Llama, question: str | None = None) -> dict:
                 if not sql_query:
                     return {"error": "Model did not return valid SELECT SQL"}
                 cursor.execute(sql_query)
+                columns = [desc[0] for desc in cursor.description]
                 rows = cursor.fetchall()
+                rows = [list(row) for row in rows]
                 return {
                     "sql": sql_query,
-                    "rows": [list(row) for row in rows]
+                    "columns": columns,
+                    "rows": rows
                 }
 
     except psycopg.Error as e:
