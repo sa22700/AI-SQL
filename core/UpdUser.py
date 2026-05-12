@@ -106,6 +106,9 @@ def update_user(
                     "updated": dict(zip(columns, row))
                 }
 
+    except KeyboardInterrupt:
+        return {"error": "Cancelled"}
+
     except psycopg.errors.UniqueViolation:
         return {"error": "Username already exists"}
 

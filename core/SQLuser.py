@@ -141,6 +141,12 @@ def ask_user(
                 log_error("Wrong username or password")
                 return {"error": "Wrong username or password"}
 
+    except EOFError:
+        return {"error": "Input ended unexpectedly"}
+
+    except KeyboardInterrupt:
+        return {"error": "Cancelled"}
+
     except psycopg.Error as e:
         log_error(f"Error in ask_user(): {e}")
         return {"error": str(e)}

@@ -99,6 +99,16 @@ def add_new_user(
                         "is_admin": is_admin
                     }
 
+    except EOFError:
+        return {"error": "Input ended unexpectedly"}
+
+    except KeyboardInterrupt:
+        return {"error": "Operation cancelled"}
+
+    except RuntimeError as e:
+        log_error(f"Error in add_new_user(): {e}")
+        return {"error": str(e)}
+
     except psycopg.Error as e:
         log_error(f"Error in add_new_user(): {e}")
         return {"error": str(e)}

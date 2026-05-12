@@ -23,7 +23,8 @@ def show_delete(page: ft.Page, state, api, go) -> None:
         payload = {
             "username": state.username,
             "password": state.password,
-            "username_to_delete": user
+            "username_to_delete": user,
+            "confirm": confirm_cb.value
         }
         status_txt.value = "Deleting..."
         page.update()

@@ -65,6 +65,16 @@ def drop_table(
                     "schema": schema_result.get("action")
                 }
 
+    except EOFError:
+        return {"error": "Input ended unexpectedly"}
+
+    except KeyboardInterrupt:
+        return {"error": "Operation cancelled"}
+
+    except RuntimeError as e:
+        log_error(f"Error in drop_table(): {e}")
+        return {"error": str(e)}
+
     except psycopg.Error as e:
         log_error(f"Database error in drop_table(): {e}")
         return {"error": str(e)}

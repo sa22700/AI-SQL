@@ -152,6 +152,12 @@ def database(
                     result["rows"] = [list(row) for row in rows]
                 return result
 
+    except EOFError:
+        return {"error": "Input ended unexpectedly"}
+
+    except KeyboardInterrupt:
+        return {"error": "Cancelled"}
+
     except psycopg.Error as e:
         log_error(f"Database error in database(): {e}")
         return {"error": str(e)}

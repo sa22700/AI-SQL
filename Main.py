@@ -47,8 +47,15 @@ def main_menu() -> None:
                 break
 
             except ValueError:
-                log_error("Invalid choice. Please enter a number.")
                 print("Invalid choice. Please enter a number.")
+
+            except EOFError:
+                print("Invalid choice. Please enter a number.")
+                return
+
+            except KeyboardInterrupt:
+                print("Invalid choice. Please enter a number.")
+                return
 
         if choice == 1:
             if llm is None:
@@ -111,6 +118,12 @@ def start() -> None:
         else:
             print("Login failure")
             log_error("Login failure")
+
+    except KeyboardInterrupt:
+        print("\nLogging out. Goodbye!")
+
+    except EOFError:
+        print("\nLogging out. Goodbye!")
 
     except Exception as e:
         log_error(f"Unexpected error in start(): {e}")

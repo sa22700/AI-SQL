@@ -64,6 +64,15 @@ def delete_part(
                     "deleted": part_number,
                     "table": table_name
                 }
+    except EOFError:
+        return {"error": "Input ended unexpectedly"}
+
+    except KeyboardInterrupt:
+        return {"error": "Operation cancelled"}
+
+    except RuntimeError as e:
+        log_error(f"Error in delete_part(): {e}")
+        return {"error": str(e)}
 
     except psycopg.Error as e:
         log_error(f"Database error in delete_part(): {e}")

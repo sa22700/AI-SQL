@@ -35,6 +35,7 @@ class AddUserResponse(BaseModel):
 
 class DeleteUserRequest(LoginRequest):
     username_to_delete: str
+    confirm: bool = False
 
 class DeleteUserResponse(BaseModel):
     ok: bool
@@ -85,6 +86,7 @@ class UpdatePartRequest(LoginRequest):
     new_part_name: str | None = None
     new_category: str | None = None
     new_price: float | None = None
+    confirm: bool = False
 
 class UpdatePartResponse(BaseModel):
     ok: bool

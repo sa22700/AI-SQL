@@ -92,6 +92,13 @@ def sql_driver(llm: Llama, question: str | None = None) -> dict:
                     "rows": rows
                 }
 
+    except KeyboardInterrupt:
+        return {"error": "Cancelled"}
+
+    except RuntimeError as e:
+        log_error(f"Error in sql_driver: {e}")
+        return {"error": str(e)}
+
     except psycopg.Error as e:
         log_error(f"Error in sql_driver: {e}")
         return {"error": str(e)}

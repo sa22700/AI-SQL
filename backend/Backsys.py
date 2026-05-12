@@ -91,7 +91,7 @@ def delete_user_endpoint(req: DeleteUserRequest) -> dict:
             admin_username=req.username,
             admin_password=req.password,
             username=req.username_to_delete,
-            confirm=False,
+            confirm=req.confirm,
         )
         raise_for_error(out)
         return out
@@ -179,7 +179,7 @@ def update_part_endpoint(req: UpdatePartRequest) -> dict:
             price=req.new_price,
             admin_username=req.username,
             admin_password=req.password,
-            confirm=False,
+            confirm=req.confirm,
         )
         raise_for_error(out)
         return out

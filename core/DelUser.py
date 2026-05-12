@@ -10,7 +10,7 @@ def delete_user(
     admin_username: str | None = None,
     admin_password: str | None = None,
     username: str | None = None,
-    confirm: bool = True
+    confirm: bool = False
 ) -> dict:
     interactive = (
         admin_username is None
@@ -37,14 +37,14 @@ def delete_user(
                 return {"error": "Username cannot be empty"}
         if username == auth.get("username"):
             return {"error": "Admin cannot delete itself"}
-        if confirm:
-            if interactive:
-                confirm_answer = (
+        if interactive:
+            confirm_answer = (
                     input(f"Delete user '{username}'? (y/n): ") or ""
-                ).strip().lower()
-                if confirm_answer != "y":
-                    return {"error": "Cancelled"}
-            else:
+            ).strip().lower()
+            if confirm_answer != "y":
+                return {"error": "Cancelled"}
+        else:
+            if not confirm:
                 return {"error": "Confirmation required"}
         with connect_write() as conn:
             with conn.cursor() as cursor:
@@ -58,6 +58,16 @@ def delete_user(
                     "ok": True,
                     "deleted": username
                 }
+
+    except EOFError:
+        return {"error": "Input ended unexpectedly"}
+
+    except KeyboardInterrupt:
+        return {"error": "Cancelled"}
+
+    except RuntimeError as e:
+        log_error(f"Error in delete_user(): {e}")
+        return {"error": str(e)}
 
     except psycopg.Error as e:
         log_error(f"Database error in delete_user(): {e}")

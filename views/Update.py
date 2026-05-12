@@ -37,7 +37,7 @@ def show_update_part(page: ft.Page, state, api, go) -> None:
         price = None
         if price_raw != "":
             try:
-                price = float(price_raw[3].replace(",", ""))
+                price = float(price_raw.replace(",", "."))
 
             except ValueError:
                 log_error(f"Invalid price: {price_raw}")
@@ -57,6 +57,7 @@ def show_update_part(page: ft.Page, state, api, go) -> None:
             "new_part_name": part_name,
             "new_category": category,
             "new_price": price,
+            "confirm": confirm_cb.value
         }
         status_txt.value = "Updating..."
         page.update()

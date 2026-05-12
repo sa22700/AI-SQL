@@ -109,6 +109,12 @@ def update_part(
                     "updated": dict(zip(columns, row))
                 }
 
+    except EOFError:
+        return {"error": "Input ended unexpectedly"}
+
+    except KeyboardInterrupt:
+        return {"error": "Cancelled"}
+
     except psycopg.Error as e:
         log_error(f"Database error in update_part(): {e}")
         return {"error": str(e)}

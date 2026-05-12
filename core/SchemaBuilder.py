@@ -23,6 +23,10 @@ def schema_reader(filepath: str = SCHEMA_PATH) -> list:
         log_error(f"Error reading schema file: {filepath}")
         return []
 
+    except UnicodeDecodeError:
+        log_error(f"Error reading schema file: {filepath}")
+        return []
+
     except OSError as e:
         log_error(f"Error reading schema file: {filepath} ({e})")
         return []
@@ -37,17 +41,20 @@ def schema_builder(schema_data: list, filepath: str = SCHEMA_PATH) -> dict:
         os.replace(temp_path, filepath)
         return {"ok": True}
 
+    except (TypeError, ValueError) as e:
+        log_error(f"Error writing schema file: {filepath} ({e})")
+
     except OSError as e:
         log_error(f"Error writing schema file: {filepath} ({e})")
 
-        try:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
+    try:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
 
-        except OSError:
-            pass
+    except OSError:
+        pass
 
-        return {"error": str(e)}
+    return {"error": "Failed to write schema file"}
 
 def schema_tables(
     table_name: str,
