@@ -43,9 +43,9 @@ def update_user(
             print("Leave empty if no change")
             new_username = input("New username: ").strip()
             print("Leave empty if no change")
-            new_password = getpass("New password: ").strip()
+            new_password = getpass("New password: ")
             if new_password:
-                confirm_password = getpass("Confirm password: ").strip()
+                confirm_password = getpass("Confirm password: ")
             admin_answer = input(
                 "Change admin status? (y/n/empty = no change): "
             ).strip().lower()
@@ -58,9 +58,9 @@ def update_user(
         else:
             target_username = (target_username or "").strip()
             new_username = (new_username or "").strip()
-            new_password = (new_password or "").strip()
+            new_password = (new_password or "")
             if confirm_password is not None:
-                confirm_password = confirm_password.strip()
+                confirm_password = confirm_password
         if not target_username:
             return {"error": "Missing target username"}
         if target_username == auth_username and is_admin is False:

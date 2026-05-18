@@ -36,8 +36,8 @@ def show_update_user(page: ft.Page, state, api, go) -> None:
     async def do_update_click(e) -> None:
         target_username = (target_tf.value or "").strip()
         new_username = (username_tf.value or "").strip()
-        new_password = (password_tf.value or "").strip()
-        confirm_password = (confirm_password_tf.value or "").strip()
+        new_password = (password_tf.value or "")
+        confirm_password = (confirm_password_tf.value or "")
         if not target_username:
             status_txt.value = "Target username missing"
             page.update()
