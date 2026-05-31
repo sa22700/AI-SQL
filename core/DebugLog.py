@@ -4,7 +4,7 @@
 import traceback
 import os
 
-LOG_FILE = os.getenv('ErrorLog')
+LOG_FILE = os.getenv('ERROR_LOG')
 
 def log_error(error_message) -> None:
     with open(LOG_FILE, "a", encoding="utf-8") as log:

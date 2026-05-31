@@ -13,9 +13,10 @@ services:
       DB_READ_PASS: ${DB_READ_PASS}
       DB_WRITE_USER: ${DB_WRITE_USER}
       DB_WRITE_PASS: ${DB_WRITE_PASS}
+      API_BASE: ${API_BASE}
       LLM_MODEL: /app/models/example.gguf
       SCHEMA: /app/logs/schema.json
-      ErrorLog: /app/logs/ErrorLog.log
+      ERROR_LOG: /app/logs/ErrorLog.log
       SQL_PROMPT: /app/logs/sql_prompt.txt
     ports:
       - "8000:8000"
