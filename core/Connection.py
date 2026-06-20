@@ -13,7 +13,9 @@ def connect_read():
         user=os.environ['DB_READ_USER'],
         password=os.environ['DB_READ_PASS'],
         port=os.environ['DB_PORT'],
-        dbname=os.environ['DB_NAME']
+        dbname=os.environ['DB_NAME'],
+        autocommit=True,
+        prepare_threshold=None
     )
 
 def connect_write():
@@ -22,7 +24,9 @@ def connect_write():
         user=os.environ["DB_WRITE_USER"],
         password=os.environ["DB_WRITE_PASS"],
         port=os.environ["DB_PORT"],
-        dbname=os.environ["DB_NAME"]
+        dbname=os.environ["DB_NAME"],
+        autocommit=True,
+        prepare_threshold=None
     )
 
 def cuda_available() -> float:
