@@ -21,7 +21,7 @@ def load_model() -> Llama:
         use_mmap=True,
         n_gpu_layers=n_gpu_layers,
         n_ctx=4096,
-        use_mlock=False,
+        use_mlock=True,
         verbose=False
     )
     return llm
