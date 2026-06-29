@@ -15,6 +15,9 @@ from views.Table import show_delete_table
 from views.Parts import show_delete_part
 from views.Update import show_update_part
 from views.User import show_update_user
+from dotenv import load_dotenv
+
+load_dotenv()
 
 API_BASE = os.getenv("API_BASE")
 

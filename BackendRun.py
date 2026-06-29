@@ -4,6 +4,9 @@
 import os
 import uvicorn
 from core.DebugLog import log_error
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def main() -> None:
     try:

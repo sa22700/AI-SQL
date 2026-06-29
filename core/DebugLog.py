@@ -4,10 +4,8 @@
 import traceback
 import os
 
-LOG_FILE = os.getenv('ERROR_LOG')
-
 def log_error(error_message) -> None:
-    with open(LOG_FILE, "a", encoding="utf-8") as log:
+    with open(os.getenv('ERROR_LOG'), "a", encoding="utf-8") as log:
         log.write(f"Error: {error_message}\n")
         log.write(traceback.format_exc())
         log.write("\n" + "=" * 40 + "\n")

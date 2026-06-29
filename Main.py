@@ -12,6 +12,9 @@ from core.DelParts import delete_part
 from core.UpdParts import update_part
 from ui.Utils import clean_rows
 from core.UpdUser import update_user
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def print_result(result: dict | None) -> None:
     if result is None:

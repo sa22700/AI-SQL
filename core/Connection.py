@@ -14,7 +14,7 @@ def connect_read():
         password=os.environ['DB_READ_PASS'],
         port=os.environ['DB_PORT'],
         dbname=os.environ['DB_NAME'],
-        autocommit=True,
+        autocommit=False,
         prepare_threshold=None
     )
 

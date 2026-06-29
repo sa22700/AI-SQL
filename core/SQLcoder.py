@@ -18,9 +18,11 @@ def load_model() -> Llama:
         raise RuntimeError("LLM_MODEL environment variable is not set")
     llm = Llama(
         model_path=model_path,
-        use_mmap=False,
+        use_mmap=True,
         n_gpu_layers=n_gpu_layers,
-        n_ctx=4096
+        n_ctx=4096,
+        use_mlock=False,
+        verbose=False
     )
     return llm
 
@@ -33,7 +35,7 @@ def sql_driver(llm: Llama, question: str | None = None) -> dict:
         if not prompt_path:
             return {"error": "SQL_PROMPT environment variable is not set"}
         with connect_read() as conn:
-            conn.set_session(readonly=True, autocommit=False)
+            conn.read_only = True
             with conn.cursor() as cursor:
                 with open(schema_path, "r", encoding="utf-8") as f:
                     schema = json.load(f)
