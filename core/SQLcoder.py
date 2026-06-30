@@ -8,18 +8,16 @@ from llama_cpp import Llama
 from ui.Utils import clean_sql
 from core.DebugLog import log_error
 from contextlib import redirect_stderr
-from core.Connection import connect_read, cuda_available, estimate_n_gpu_layers
+from core.Connection import connect_read
 
 def load_model() -> Llama:
-    vram_gb = cuda_available()
-    n_gpu_layers = estimate_n_gpu_layers(vram_gb)
     model_path = os.getenv("LLM_MODEL")
     if not model_path:
         raise RuntimeError("LLM_MODEL environment variable is not set")
     llm = Llama(
         model_path=model_path,
         use_mmap=True,
-        n_gpu_layers=n_gpu_layers,
+        n_gpu_layers=-1,
         n_ctx=4096,
         use_mlock=True,
         verbose=False
