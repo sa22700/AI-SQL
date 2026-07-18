@@ -11,6 +11,7 @@ The following third-party libraries are used under their own licenses:
 - uvicorn — BSD-3-Clause
 - flet — Apache-2.0
 - psycopg — LGPL3.0-only with exceptions
+- python-dotenv — BSD-3-Clause
 
 ## Notes
 
