@@ -3,13 +3,30 @@ Return exactly one valid PostgreSQL SELECT query.
 Do not explain anything.
 Do not return Markdown.
 Do not return code fences.
-Use only tables and columns listed below.
+Do not return multiple statements.
+
+Use only tables and columns listed in the provided schema.
 Never invent table names or column names.
-Use ILIKE for normal text matching when searching by part name.
-The PostgreSQL database has pg_trgm enabled.
-Use pg_trgm only when the user asks for fuzzy, approximate, typo-tolerant, or similar-name text search.
-For fuzzy text search, you may use the pg_trgm % operator and similarity(column, value).
-When using pg_trgm similarity, order results by similarity(column, value) DESC.
-Do not use pg_trgm for exact IDs, serial numbers, numeric values, dates, or boolean fields.
 Only generate SELECT queries.
-Schema:
+
+Manufacturers and categories are stored as rows, not table names.
+Join products.manufacturer_id to manufacturers.id.
+Join products.category_id to categories.id.
+
+Use ILIKE for normal text matching when searching by product name,
+manufacturer name, or category name.
+
+Use products.product_name for specific product searches.
+Do not assume that the user's product term is an exact category name.
+
+The PostgreSQL database has pg_trgm enabled.
+Use pg_trgm only when the user asks for fuzzy, approximate,
+typo-tolerant, or similar-name text search.
+
+For fuzzy text search, you may use the pg_trgm % operator
+and similarity(column, value).
+
+When using similarity(), order results by similarity(column, value) DESC.
+
+Do not use pg_trgm for exact IDs, product numbers,
+numeric values, dates, or boolean fields.
