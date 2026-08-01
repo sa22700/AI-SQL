@@ -28,7 +28,7 @@ def show_delete_table(page: ft.Page, state, api, go) -> None:
         status_txt.value = "Deleting..."
         page.update()
         try:
-            loader = await api.delete_table(payload)
+            loader = await api.database(payload)
             data = loader.json() if loader is not None else {}
             if not (200 <= loader.status_code < 300) or data.get("error"):
                 detail = data.get("detail") or data.get("error") or getattr(loader, "text", "Unknown error")

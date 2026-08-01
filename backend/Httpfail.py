@@ -11,8 +11,10 @@ def raise_for_error(out: dict) -> None:
         raise HTTPException(status_code=401, detail=error)
     if error == "Admin required":
         raise HTTPException(status_code=403, detail=error)
-    if error in ("User not found", "Not found", "Table not found"):
+    if error in ("User not found", "Not found", "Table not found", "Product not found"):
         raise HTTPException(status_code=404, detail=error)
     if error in ("Internal server error", "Database connection failed", "SQL execution failed", "Schema file missing", "Prompt file missing"):
         raise HTTPException(status_code=500, detail=error)
+    if error in ("Username already exists", "Product number already exists for this manufacturer"):
+        raise HTTPException(status_code=409, detail=error)
     raise HTTPException(status_code=400, detail=error)

@@ -56,10 +56,13 @@ def show_database(page: ft.Page, state, api, go) -> None:
         payload = {
             "username": state.username,
             "password": state.password,
-            "create_table": bool(create_cb.value),
-            "table_name": table_name,
-            "rows": rows,
-            "fetch": bool(fetch_cb.value)
+            "product_name": product_name,
+            "product_number": product_number or None,
+            "manufacturer": manufacturer or None,
+            "category": category or None,
+            "price": price,
+            "currency": currency,
+            "attributes": attributes
         }
         status_txt.value = "Running..."
         page.update()

@@ -8,7 +8,6 @@ from backend.Backbase import (
     AddUserRequest, AddUserResponse,
     DeleteUserRequest, DeleteUserResponse,
     DatabaseRequest, DatabaseResponse,
-    DeleteTableRequest, DeleteTableResponse,
     DeletePartRequest, DeletePartResponse,
     UpdatePartRequest, UpdatePartResponse,
     UpdateUserRequest, UpdateUserResponse
@@ -17,7 +16,6 @@ from core.SQLcoder import sql_driver, load_model
 from core.AddUser import add_new_user
 from core.SQLcreate import database
 from core.DelUser import delete_user
-from core.DelTable import drop_table
 from core.DelParts import delete_part
 from core.UpdParts import update_part
 from core.UpdUser import update_user
@@ -103,17 +101,23 @@ def delete_user_endpoint(req: DeleteUserRequest) -> dict:
         log_error(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/database", response_model=DatabaseResponse)
+@app.post(
+    "/database",
+    response_model=DatabaseResponse
+)
 def database_endpoint(req: DatabaseRequest) -> dict:
     try:
         verify_admin(req.username, req.password)
         out = database(
             admin_username=req.username,
             admin_password=req.password,
-            create_table=req.create_table,
-            table_name=req.table_name,
-            rows_to=[(r.part_name, r.part_number, r.category, r.price) for r in req.rows] if req.rows else None,
-            fetch=req.fetch,
+            product_name=req.product_name,
+            product_number=req.product_number,
+            manufacturer=req.manufacturer,
+            category=req.category,
+            price=req.price,
+            currency=req.currency,
+            attributes=req.attributes
         )
         raise_for_error(out)
         return out
@@ -123,39 +127,17 @@ def database_endpoint(req: DatabaseRequest) -> dict:
 
     except Exception as e:
         log_error(str(e))
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/delete_table", response_model=DeleteTableResponse)
-def delete_table_endpoint(req: DeleteTableRequest) -> dict:
-    try:
-        verify_admin(req.username, req.password)
-        out = drop_table(
-            admin_username=req.username,
-            admin_password=req.password,
-            table_name=req.table_to_delete,
-            cascade=False,
-            confirm=False,
-        )
-        raise_for_error(out)
-        return out
-
-    except HTTPException:
-        raise
-
-    except Exception as e:
-        log_error(str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/delete_part", response_model=DeletePartResponse)
 def delete_part_endpoint(req: DeletePartRequest) -> dict:
     try:
         verify_admin(req.username, req.password)
         out = delete_part(
-            table_name=req.table_name,
-            part_number=req.part_to_delete,
+            product_id=req.product_id,
             admin_username=req.username,
             admin_password=req.password,
-            confirm=False,
+            confirm=req.confirm
         )
         raise_for_error(out)
         return out
@@ -165,21 +147,22 @@ def delete_part_endpoint(req: DeletePartRequest) -> dict:
 
     except Exception as e:
         log_error(str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.put("/update_part", response_model=UpdatePartResponse)
 def update_part_endpoint(req: UpdatePartRequest) -> dict:
     try:
-        verify_admin(req.username, req.password)
+        verify_admin(req.username,req.password)
         out = update_part(
-            table_name=req.table_name,
-            part_number=req.target_part_number,
-            part_name=req.new_part_name,
-            category=req.new_category,
-            price=req.new_price,
+            product_id=req.product_id,
+            product_name=req.product_name,
+            product_number=req.product_number,
+            manufacturer=req.manufacturer,
+            category=req.category,
+            price=req.price,
             admin_username=req.username,
             admin_password=req.password,
-            confirm=req.confirm,
+            confirm=req.confirm
         )
         raise_for_error(out)
         return out
@@ -189,7 +172,7 @@ def update_part_endpoint(req: UpdatePartRequest) -> dict:
 
     except Exception as e:
         log_error(str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.put("/update_user", response_model=UpdateUserResponse)
 def update_user_endpoint(req: UpdateUserRequest) -> dict:

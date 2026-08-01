@@ -3,28 +3,31 @@
 
 import psycopg
 from psycopg import sql
-from core.SQLAuth import require_admin
-from core.DebugLog import log_error
 from core.Connection import connect_write
+from core.DebugLog import log_error
+from core.SQLAuth import require_admin
+from core.SQLcreate import get_manufacturer_id, get_category_id
 
 def update_part(
-    table_name: str | None = None,
-    part_number: str | None = None,
-    part_name: str | None = None,
+    product_id: int | None = None,
+    product_name: str | None = None,
+    product_number: str | None = None,
+    manufacturer: str | None = None,
     category: str | None = None,
     price: float | None = None,
     admin_username: str | None = None,
     admin_password: str | None = None,
-    confirm: bool = True,
+    confirm: bool = True
 ) -> dict:
     interactive = (
-        admin_username is None
-        and admin_password is None
-        and table_name is None
-        and part_number is None
-        and part_name is None
+        product_id is None
+        and product_name is None
+        and product_number is None
+        and manufacturer is None
         and category is None
         and price is None
+        and admin_username is None
+        and admin_password is None
     )
     try:
         auth = require_admin(
@@ -35,13 +38,22 @@ def update_part(
         if not auth.get("ok"):
             return auth
         if interactive:
-            table_name = input("Table name: ").strip()
-            part_number = input("Part number to update: ").strip()
-            raw = input("New part name (leave empty = no change): ").strip()
-            part_name = raw if raw else None
-            raw = input("New category (leave empty = no change): ").strip()
-            category = raw if raw else None
-            raw = input("New price (leave empty = no change): ").strip()
+            raw_id = input("Product id to update: ").strip()
+            try:
+                product_id = int(raw_id)
+
+            except ValueError:
+                return {"error": "Invalid product id"}
+
+            raw = input("New product name (empty = no change): ").strip()
+            product_name = raw or None
+            raw = input("New product number (empty = no change): ").strip()
+            product_number = raw or None
+            raw = input("New manufacturer (empty = no change): ").strip()
+            manufacturer = raw or None
+            raw = input("New category (empty = no change): ").strip()
+            category = raw or None
+            raw = input("New price (empty = no change): ").strip()
             if raw:
                 try:
                     price = float(raw)
@@ -49,71 +61,99 @@ def update_part(
                 except ValueError:
                     return {"error": "Invalid price"}
 
-        else:
-            table_name = (table_name or "").strip()
-            part_number = (part_number or "").strip()
-        if not table_name:
-            return {"error": "Missing table_name"}
-        if not part_number:
-            return {"error": "Missing part_number"}
-        sets = []
-        params = []
-        if part_name is not None:
-            part_name = part_name.strip()
-            if part_name:
-                sets.append(sql.SQL("part_name = %s"))
-                params.append(part_name)
-        if category is not None:
-            category = category.strip()
-            if category:
-                sets.append(sql.SQL("category = %s"))
-                params.append(category)
-        if price is not None:
-            try:
-                price = float(price)
+        try:
+            product_id = int(product_id)
 
-            except (TypeError, ValueError):
-                return {"error": "Invalid price"}
+        except (TypeError, ValueError):
+            return {"error": "Invalid product id"}
 
-            sets.append(sql.SQL("price = %s"))
-            params.append(price)
-        if not sets:
+        if product_id <= 0:
+            return {"error": "Invalid product id"}
+
+        requested_changes = [
+            product_name,
+            product_number,
+            manufacturer,
+            category,
+            price
+        ]
+        if all(value is None for value in requested_changes):
             return {"error": "Nothing to update"}
-        if confirm:
-            if interactive:
-                answer = (
-                    input(
-                        f"Update part '{part_number}' in table '{table_name}' "
-                        f"with {len(sets)} change(s)? (y/n): "
-                    ) or ""
-                ).strip().lower()
-                if answer != "y":
-                    return {"error": "Cancelled"}
-            else:
-                return {"error": "Confirmation required"}
+        if interactive:
+            answer = (input(f"Update product {product_id}? (y/n): ")or "").strip().lower()
+            if answer != "y":
+                return {"error": "Cancelled"}
+        elif not confirm:
+            return {"error": "Confirmation required"}
         with connect_write() as conn:
             with conn.cursor() as cursor:
-                params.append(part_number)
+                sets = []
+                params = []
+                if product_name is not None:
+                    product_name = product_name.strip()
+                    if not product_name:
+                        return {"error": "Product name cannot be empty"}
+                    sets.append(sql.SQL("product_name = %s"))
+                    params.append(product_name)
+                if product_number is not None:
+                    product_number = product_number.strip()
+                    if product_number:
+                        sets.append(sql.SQL("product_number = %s"))
+                        params.append(product_number)
+                if manufacturer is not None:
+                    manufacturer_id = get_manufacturer_id(cursor, manufacturer)
+                    sets.append(sql.SQL("manufacturer_id = %s"))
+                    params.append(manufacturer_id)
+                if category is not None:
+                    category_id = get_category_id(cursor, category)
+                    sets.append(sql.SQL("category_id = %s"))
+                    params.append(category_id)
+                if price is not None:
+                    try:
+                        price = float(price)
+
+                    except (TypeError, ValueError):
+                        return {"error": "Invalid price"}
+
+                    if price < 0:
+                        return {"error": "Price cannot be negative"}
+                    sets.append(sql.SQL("price = %s"))
+                    params.append(price)
+                if not sets:
+                    return {"error": "Nothing to update"}
+                params.append(product_id)
                 update_sql = (
-                    sql.SQL("UPDATE {} SET ").format(sql.Identifier(table_name))
+                    sql.SQL("UPDATE products SET ")
                     + sql.SQL(", ").join(sets)
-                    + sql.SQL(" WHERE part_number = %s RETURNING *;")
+                    + sql.SQL("""
+                        WHERE id = %s
+                        RETURNING
+                            id,
+                            manufacturer_id,
+                            category_id,
+                            product_name,
+                            product_number,
+                            price;
+                        """)
                 )
                 cursor.execute(update_sql, tuple(params))
                 row = cursor.fetchone()
                 if not row:
-                    return {"error": "Not found"}
+                    return {"error": "Product not found"}
                 columns = [column[0] for column in cursor.description]
-                return {
-                    "ok": True,
-                    "updated": dict(zip(columns, row))
-                }
+        return {
+            "ok": True,
+            "updated": dict(zip(columns, row))
+        }
 
     except EOFError:
         return {"error": "Input ended unexpectedly"}
 
     except KeyboardInterrupt:
         return {"error": "Cancelled"}
+
+    except psycopg.errors.UniqueViolation:
+        return {"error": "Product number already exists for this manufacturer"}
 
     except psycopg.Error as e:
         log_error(f"Database error in update_part(): {e}")

@@ -95,9 +95,7 @@ def ask_user(
                             return {
                                 "ok": True,
                                 "username": username,
-                                "user": {
-                                    "is_admin": bool(row[1])
-                                }
+                                "user": {"is_admin": bool(row[1])}
                             }
 
                         except (

@@ -22,6 +22,6 @@ def connect_write():
         password=os.environ["DB_WRITE_PASS"],
         port=os.environ["DB_PORT"],
         dbname=os.environ["DB_NAME"],
-        autocommit=True,
+        autocommit=False,
         prepare_threshold=None
     )

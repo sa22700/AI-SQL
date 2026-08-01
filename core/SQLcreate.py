@@ -1,27 +1,132 @@
 # SPDX-FileCopyrightText: 2026 Pirkka Toivakka
 # SPDX-License-Identifier: Apache-2.0
 
+import json
 import psycopg
-from psycopg import sql
-from core.SchemaBuilder import schema_tables, column_builder
-from core.DebugLog import log_error
+from psycopg.types.json import Jsonb
 from core.Connection import connect_write
+from core.DebugLog import log_error
 from core.SQLAuth import require_admin
+
+def get_manufacturer_id(cursor, manufacturer: str | None) -> int | None:
+    manufacturer = (manufacturer or "").strip()
+    if not manufacturer:
+        return None
+    cursor.execute("""
+        INSERT INTO manufacturers (name)
+        VALUES (%s)
+        ON CONFLICT (name)
+        DO UPDATE SET name = EXCLUDED.name
+        RETURNING id;
+        """, (manufacturer,))
+    return cursor.fetchone()[0]
+
+def get_category_id(cursor, category: str | None) -> int | None:
+    category = (category or "").strip()
+    if not category:
+        return None
+    cursor.execute("""
+        INSERT INTO categories (name)
+        VALUES (%s)
+        ON CONFLICT (name)
+        DO UPDATE SET name = EXCLUDED.name
+        RETURNING id;
+        """,(category,))
+    return cursor.fetchone()[0]
+
+def insert_product(
+    cursor,
+    product_name: str | None,
+    product_number: str | None,
+    manufacturer: str | None,
+    category: str | None,
+    price: float | str | None,
+    currency: str,
+    attributes: dict | None
+) -> dict:
+    product_name = (product_name or "").strip()
+    product_number = (product_number or "").strip() or None
+    currency = (currency or "EUR").strip().upper()
+    attributes = attributes or {}
+    if not product_name:
+        raise ValueError("Product name cannot be empty")
+    if len(currency) != 3:
+        raise ValueError("Currency must contain three letters")
+    if not isinstance(attributes, dict):
+        raise ValueError("Attributes must be a JSON object")
+    parsed_price = None
+    if price is not None and str(price).strip():
+        try:
+            parsed_price = float(price)
+
+        except (TypeError, ValueError):
+            raise ValueError("Price must be a number")
+
+        if parsed_price < 0:
+            raise ValueError("Price cannot be negative")
+    manufacturer_id = get_manufacturer_id(cursor, manufacturer)
+    category_id = get_category_id(cursor, category)
+    cursor.execute("""
+        INSERT INTO products (
+            manufacturer_id,
+            category_id,
+            product_name,
+            product_number,
+            price,
+            currency,
+            attributes
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        RETURNING
+            id,
+            product_name,
+            product_number,
+            price,
+            currency,
+            attributes;
+        """,
+        (
+            manufacturer_id,
+            category_id,
+            product_name,
+            product_number,
+            parsed_price,
+            currency,
+            Jsonb(attributes)
+        )
+    )
+    row = cursor.fetchone()
+    return {
+        "id": row[0],
+        "product_name": row[1],
+        "product_number": row[2],
+        "price": row[3],
+        "currency": row[4],
+        "attributes": row[5],
+        "manufacturer": manufacturer,
+        "category": category
+    }
 
 def database(
     admin_username: str | None = None,
     admin_password: str | None = None,
-    create_table: bool | None = None,
-    table_name: str | None = None,
-    rows_to: list[tuple[str, str, str, float]] | None = None,
-    fetch: bool = True
+    product_name: str | None = None,
+    product_number: str | None = None,
+    manufacturer: str | None = None,
+    category: str | None = None,
+    price: float | str | None = None,
+    currency: str = "EUR",
+    attributes: dict | None = None
 ) -> dict:
     interactive = (
         admin_username is None
         and admin_password is None
-        and create_table is None
-        and table_name is None
-        and rows_to is None
+        and product_name is None
+        and product_number is None
+        and manufacturer is None
+        and category is None
+        and price is None
+        and attributes is None
     )
     try:
         auth = require_admin(
@@ -31,132 +136,77 @@ def database(
         )
         if not auth.get("ok"):
             return auth
+        inserted_products = []
         with connect_write() as conn:
             with conn.cursor() as cursor:
                 if interactive:
-                    ans = input("Create table? (y/n): ").strip().lower()
-                    create_table = ans == "y"
                     while True:
-                        if create_table:
-                            table_name = input("Type new table name: ").strip()
-                        else:
-                            table_name = input("Type existing table name: ").strip()
-                        if not table_name:
-                            print("Table name cannot be empty.")
-                            continue
-                        break
-                    if not create_table:
-                        cursor.execute(
-                            """
-                            SELECT EXISTS (
-                                SELECT 1
-                                FROM information_schema.tables
-                                WHERE table_schema = 'public'
-                                AND table_name = %s
-                            )
-                            """,
-                            (table_name,)
-                        )
-                        exists = cursor.fetchone()[0]
-                        if not exists:
-                            return {"error": f"Table '{table_name}' does not exist"}
-                    add_data = input("Add data? (y/n): ").strip().lower()
-                    if add_data == "y":
-                        rows_to = []
-                        while True:
+                        product_name = input("Product name: ").strip()
+                        product_number = input("Product number (optional): ").strip()
+                        manufacturer = input("Manufacturer (optional): ").strip()
+                        category = input("Category (optional): ").strip()
+                        price = input("Price (optional): ").strip()
+                        currency = (input("Currency (default EUR): ").strip() or "EUR")
+                        raw_attributes = input("Attributes as JSON (optional): ").strip()
+                        if raw_attributes:
                             try:
-                                part = input("Part name: ").strip()
-                                number = input("Part number: ").strip()
-                                category = input("Category: ").strip()
-                                price = float(input("Price: "))
-                                rows_to.append((part, number, category, price))
+                                attributes = json.loads(raw_attributes)
 
-                            except ValueError:
-                                print("Price must be number")
+                            except json.JSONDecodeError:
+                                print("Invalid attributes JSON.")
                                 continue
 
-                            add_more = input("Add more data? (y/n): ").strip().lower()
-                            if add_more != "y":
-                                break
-                else:
-                    if create_table is None:
-                        create_table = False
-                    if (create_table or rows_to or fetch) and (not table_name or not str(table_name).strip()):
-                        return {"error": "Missing table_name"}
-                    table_name = (table_name or "").strip()
-                    if not create_table and table_name:
-                        cursor.execute(
-                            """
-                            SELECT EXISTS (
-                                SELECT 1
-                                FROM information_schema.tables
-                                WHERE table_schema = 'public'
-                                AND table_name = %s
+                        else:
+                            attributes = {}
+                        try:
+                            product = insert_product(
+                                cursor=cursor,
+                                product_name=product_name,
+                                product_number=product_number,
+                                manufacturer=manufacturer,
+                                category=category,
+                                price=price,
+                                currency=currency,
+                                attributes=attributes
                             )
-                            """,
-                            (table_name,)
-                        )
-                        exists = cursor.fetchone()[0]
-                        if not exists:
-                            return {"error": f"Table '{table_name}' does not exist"}
-                created = False
-                if create_table:
-                    create_sql = sql.SQL(
-                        "CREATE TABLE IF NOT EXISTS {} ("
-                        "id SERIAL PRIMARY KEY, "
-                        "part_name TEXT, "
-                        "part_number TEXT UNIQUE, "
-                        "category TEXT, "
-                        "price DOUBLE PRECISION"
-                        ");"
-                    ).format(
-                        sql.Identifier(table_name)
+
+                        except ValueError as e:
+                            print(str(e))
+                            continue
+
+                        inserted_products.append(product)
+                        add_more = input("Add more products? (y/n): ").strip().lower()
+                        if add_more != "y":
+                            break
+                else:
+                    product = insert_product(
+                        cursor=cursor,
+                        product_name=product_name,
+                        product_number=product_number,
+                        manufacturer=manufacturer,
+                        category=category,
+                        price=price,
+                        currency=currency,
+                        attributes=attributes
                     )
-                    cursor.execute(create_sql)
-                    columns = column_builder()
-                    schema_result = schema_tables(table_name, columns)
-                    if "error" in schema_result:
-                        conn.rollback()
-                        return schema_result
-                    created = True
-                inserted = 0
-                if rows_to:
-                    insert_sql = sql.SQL(
-                        "INSERT INTO {} (part_name, part_number, category, price) "
-                        "VALUES (%s, %s, %s, %s);"
-                    ).format(
-                        sql.Identifier(table_name)
-                    )
-                    for part, number, category, price in rows_to:
-                        cursor.execute(
-                            insert_sql,
-                            (part, number, category, price)
-                        )
-                        inserted += 1
-                result = {
-                    "ok": True,
-                    "table": table_name,
-                    "created": created,
-                    "inserted": inserted
-                }
-                if fetch and table_name:
-                    select_sql = sql.SQL(
-                        "SELECT * FROM {}"
-                    ).format(
-                        sql.Identifier(table_name)
-                    )
-                    cursor.execute(select_sql)
-                    cols = [column[0] for column in cursor.description]
-                    rows = cursor.fetchall()
-                    result["columns"] = cols
-                    result["rows"] = [list(row) for row in rows]
-                return result
+                    inserted_products.append(product)
+        return {
+            "ok": True,
+            "inserted": len(inserted_products),
+            "products": inserted_products
+        }
 
     except EOFError:
         return {"error": "Input ended unexpectedly"}
 
     except KeyboardInterrupt:
         return {"error": "Cancelled"}
+
+    except psycopg.errors.UniqueViolation:
+        return {"error": "Product number already exists for this manufacturer"}
+
+    except ValueError as e:
+        return {"error": str(e)}
 
     except psycopg.Error as e:
         log_error(f"Database error in database(): {e}")

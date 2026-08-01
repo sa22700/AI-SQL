@@ -46,9 +46,7 @@ def update_user(
             new_password = getpass("New password: ")
             if new_password:
                 confirm_password = getpass("Confirm password: ")
-            admin_answer = input(
-                "Change admin status? (y/n/empty = no change): "
-            ).strip().lower()
+            admin_answer = input("Change admin status? (y/n/empty = no change): ").strip().lower()
             if admin_answer == "y":
                 is_admin = True
             elif admin_answer == "n":
@@ -82,9 +80,7 @@ def update_user(
         if not sets:
             return {"error": "Nothing to update"}
         if confirm and interactive:
-            answer = input(
-                f"Update user '{target_username}' with {len(sets)} change(s)? (y/n): "
-            ).strip().lower()
+            answer = input(f"Update user '{target_username}' with {len(sets)} change(s)? (y/n): ").strip().lower()
             if answer != "y":
                 return {"error": "Cancelled"}
         with connect_write() as conn:

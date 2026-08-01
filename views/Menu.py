@@ -27,12 +27,11 @@ def show_page(page: ft.Page, state, api, go) -> None:
                 ft.Row(
                     [
                         ft.Button("Query", on_click=nav("query")),
-                        ft.Button("Database", on_click=nav("database")),
+                        ft.Button("Add product", on_click=nav("database")),
                         ft.Button("Add user", on_click=nav("register")),
                         ft.Button("Delete user", on_click=nav("delete")),
-                        ft.Button("Delete table", on_click=nav("table")),
-                        ft.Button("Delete parts", on_click=nav("parts")),
-                        ft.Button("Update parts", on_click=nav("update")),
+                        ft.Button("Delete product", on_click=nav("parts")),
+                        ft.Button("Update product", on_click=nav("update")),
                         ft.Button("Update user", on_click=nav("update-user")),
                         ft.Button("Logout", on_click=logout_click),
                         ft.Button("Exit", on_click=exit_click),

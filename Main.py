@@ -7,7 +7,6 @@ from core.SQLcoder import sql_driver, load_model
 from core.AddUser import add_new_user
 from core.DebugLog import log_error
 from core.DelUser import delete_user
-from core.DelTable import drop_table
 from core.DelParts import delete_part
 from core.UpdParts import update_part
 from ui.Utils import clean_rows
@@ -36,12 +35,12 @@ def main_menu() -> None:
     while True:
         print("\n--- Main Menu ---")
         print("1. Run question with SQLcoder")
-        print("2. Create new table (admin only)")
+        print("2. Add product (admin only)")
         print("3. Add new user (admin only)")
         print("4. Delete user (admin only)")
-        print("5. Delete table (admin only)")
-        print("6. Delete parts (admin only)")
-        print("7. Update parts (admin only)")
+        print("5. Delete product (admin only)")
+        print("6. Update product (admin only)")
+        print("7. Update user (admin only)")
         print("8. Update user (admin only)")
         print("0. Logout / Exit")
         while True:
@@ -88,15 +87,12 @@ def main_menu() -> None:
             result = delete_user()
             print_result(result)
         elif choice == 5:
-            result = drop_table()
-            print_result(result)
-        elif choice == 6:
             result = delete_part()
             print_result(result)
-        elif choice == 7:
+        elif choice == 6:
             result = update_part()
             print_result(result)
-        elif choice == 8:
+        elif choice == 7:
             result = update_user()
             print_result(result)
         elif choice == 0:

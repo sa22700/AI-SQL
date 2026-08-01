@@ -71,7 +71,7 @@ def show_update_user(page: ft.Page, state, api, go) -> None:
             "new_password": new_password,
             "confirm_password": confirm_password,
             "is_admin": is_admin,
-            "confirm": False,
+            "confirm": bool(confirm_cb.value),
         }
         status_txt.value = "Updating..."
         page.update()

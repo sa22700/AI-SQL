@@ -39,8 +39,7 @@ def delete_user(
             return {"error": "Admin cannot delete itself"}
         if interactive:
             confirm_answer = (
-                    input(f"Delete user '{username}'? (y/n): ") or ""
-            ).strip().lower()
+                    input(f"Delete user '{username}'? (y/n): ") or "").strip().lower()
             if confirm_answer != "y":
                 return {"error": "Cancelled"}
         else:

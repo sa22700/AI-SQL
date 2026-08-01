@@ -67,10 +67,7 @@ def add_new_user(
                         print(f"Username {new_username} added.")
                         add_more = input("Do you want to add more? (y/n): ").strip().lower()
                         if add_more != "y":
-                            return {
-                                "ok": True,
-                                "username": new_username
-                            }
+                            return {"ok": True,"username": new_username}
                 else:
                     new_username = (new_username or "").strip()
                     new_password = new_password or ""
