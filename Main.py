@@ -34,14 +34,13 @@ def main_menu() -> None:
     llm = None
     while True:
         print("\n--- Main Menu ---")
-        print("1. Run question with SQLcoder")
+        print("1. Run question")
         print("2. Add product (admin only)")
         print("3. Add new user (admin only)")
         print("4. Delete user (admin only)")
         print("5. Delete product (admin only)")
         print("6. Update product (admin only)")
         print("7. Update user (admin only)")
-        print("8. Update user (admin only)")
         print("0. Logout / Exit")
         while True:
             try:

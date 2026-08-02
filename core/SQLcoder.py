@@ -60,6 +60,7 @@ def sql_driver(llm: Llama,question: str | None = None) -> dict:
             output = llm(
                 full_prompt,
                 temperature=0.0,
+                max_tokens=256,
                 echo=False,
                 stop=["```", "\n\n", "Question:", "Answer:"]
             )
