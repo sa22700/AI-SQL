@@ -7,6 +7,7 @@ from core.DebugLog import log_error
 
 def show_query(page: ft.Page, state, api, go) -> None:
     page.clean()
+    page.scroll = ft.ScrollMode.ALWAYS
     question_tf = ft.TextField(label="Question", multiline=True, min_lines=3, max_lines=6, width=600)
     status_txt = ft.Text("")
     result_tf = ft.Text("")
