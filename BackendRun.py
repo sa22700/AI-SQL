@@ -6,6 +6,7 @@ import uvicorn
 from core.DebugLog import log_error
 from core.SchemaBuilder import schema_builder
 from dotenv import load_dotenv
+from core.CheckDB import check_users_table
 
 load_dotenv()
 
@@ -16,6 +17,12 @@ def main() -> None:
             raise RuntimeError(
                 "Schema creation failed: "
                 f"{schema_result.get('error', 'Unknown error')}"
+            )
+        user_schema = check_users_table()
+        if not user_schema.get("ok"):
+            raise RuntimeError(
+                f"User table creation failed: "
+                f"{user_schema.get('error')}"
             )
         print("Database schema is ready.")
         app = os.environ['UVICORN_APP']

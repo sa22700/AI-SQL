@@ -12,6 +12,8 @@ from core.UpdParts import update_part
 from ui.Utils import clean_rows
 from core.UpdUser import update_user
 from dotenv import load_dotenv
+from core.SchemaBuilder import schema_builder
+from core.CheckDB import check_users_table
 
 load_dotenv()
 
@@ -102,6 +104,20 @@ def main_menu() -> None:
 
 def start() -> None:
     try:
+        product_schema = schema_builder()
+        if not product_schema.get("ok"):
+            print(
+                f"Database schema error: "
+                f"{product_schema.get('error')}"
+            )
+            return
+        user_schema = check_users_table()
+        if not user_schema.get("ok"):
+            print(
+                f"User table error: "
+                f"{user_schema.get('error')}"
+            )
+            return
         auth = ask_user()
         if isinstance(auth, dict):
             if auth.get("ok"):
